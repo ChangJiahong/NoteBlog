@@ -1,0 +1,46 @@
+plugins {
+    id 'org.springframework.boot' version '2.1.6.RELEASE'
+    id 'java'
+}
+
+apply plugin: 'io.spring.dependency-management'
+
+group = 'com.cjh'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.1.0'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    /**
+     * mysql jdbc驱动
+     */
+    implementation 'mysql:mysql-connector-java:8.0.11'
+
+    /**
+     * 阿里开源 数据源框架
+     */
+    implementation 'com.alibaba:druid:1.1.0'
+
+    /**
+     * mapper
+     */
+    implementation 'tk.mybatis:mapper-spring-boot-starter:1.2.4'
+
+    /**
+     * org.mybatis.generator mapper映射
+     */
+    implementation 'org.mybatis.generator:mybatis-generator-core:1.3.2'
+
+    /**
+     * java 工具包
+     */
+    implementation 'org.apache.commons:commons-lang3:3.5'
+
+}

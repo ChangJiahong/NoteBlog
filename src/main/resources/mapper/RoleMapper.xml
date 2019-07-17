@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cjh.note_blog.mapper.RoleMapper" >
+  <resultMap id="BaseResultMap" type="com.cjh.note_blog.pojo.DO.Role" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="rid" property="rid" jdbcType="INTEGER" />
+    <result column="rname" property="rname" jdbcType="VARCHAR" />
+    <result column="created" property="created" jdbcType="TIMESTAMP" />
+  </resultMap>
+</mapper>
