@@ -2,6 +2,7 @@ package com.cjh.note_blog.pojo.DO;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 import javax.persistence.*;
 
 /**
@@ -50,6 +51,8 @@ public class User implements Serializable {
      * 创建时间
      */
     private Date created;
+
+    private List<Role> roles;
 
     private static final long serialVersionUID = 1L;
 
@@ -195,5 +198,22 @@ public class User implements Serializable {
      */
     public void setCreated(Date created) {
         this.created = created;
+    }
+
+    /**
+     * 获取角色集合
+     *
+     * @return
+     */
+    public List<Role> getRoles() {
+        return roles;
+    }
+
+    /**
+     * 设置角色集合
+     * @param roles
+     */
+    public void setRoles(List<Role> roles) {
+        this.roles = roles;
     }
 }

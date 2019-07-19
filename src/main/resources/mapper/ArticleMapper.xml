@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cjh.note_blog.mapper.ArticleMapper" >
+  <resultMap id="BaseResultMap" type="com.cjh.note_blog.pojo.DO.Article" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="aid" property="id" jdbcType="INTEGER" />
+    <result column="title" property="title" jdbcType="VARCHAR" />
+    <result column="author_id" property="authorId" jdbcType="INTEGER" />
+    <result column="info" property="info" jdbcType="VARCHAR" />
+    <result column="hits" property="hits" jdbcType="INTEGER" />
+    <result column="modified" property="modified" jdbcType="TIMESTAMP" />
+    <result column="created" property="created" jdbcType="TIMESTAMP" />
+    <result column="status" property="status" jdbcType="CHAR" />
+    <result column="content" property="content" jdbcType="LONGVARCHAR" />
+
+
+    <collection property="tags" ofType="Tag" >
+      <id property="id" column="tagId" jdbcType="INTEGER" />
+      <result property="name" column="tName" />
+      <result property="type" column="tType" />
+      <result property="created" column="tCreated" />
+    </collection>
+
+    <collection property="categorys" ofType="Tag" >
+      <id property="id" column="categoryId" jdbcType="INTEGER" />
+      <result property="name" column="cName" />
+      <result property="type" column="cType" />
+      <result property="created" column="cCreated" />
+    </collection>
+
+
+  </resultMap>
+
+  <select id="selectById" resultMap="BaseResultMap" parameterType="INTEGER">
+    select
+        a.id aid,
+        a.title,
+        a.author_id,
+        a.content,
+        a.info,
+        a.hits,
+        a.modified,
+        a.created,
+        a.`status`,
+
+        t.id tagId,
+        t.created tCreated,
+        t.`name` tName,
+        t.type tType,
+
+        category.id categoryId,
+        category.created cCreated,
+        category.`name` cName,
+	    category.type cType
+
+    from article as a
+    LEFT join article_tag as atg on atg.aid = a.id
+    LEFT join tag as t on t.id = atg.tid and t.type = 'tag'
+	LEFT join article_category as ac on ac.aid = a.id
+    LEFT join tag as category on category.id = ac.cid and category.type = 'category'
+    where a.id = #{id}
+  </select>
+
+</mapper>

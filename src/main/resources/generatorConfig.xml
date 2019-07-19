@@ -44,7 +44,7 @@
         -->
         <!--<javaModelGenerator targetPackage="com.joey.mybaties.test.pojo" targetProject="MAVEN">-->
         <!-- 对于生成的pojo所在包 -->
-        <javaModelGenerator targetPackage="com.cjh.note_blog.pojo" targetProject="./src/main/java">
+        <javaModelGenerator targetPackage="com.cjh.note_blog.pojo.DO" targetProject="./src/main/java">
             <property name="enableSubPackages" value="true"/>
             <!-- 从数据库返回的值被清理前后的空格  -->
             <property name="trimStrings" value="true" />
@@ -72,10 +72,12 @@
 
         <!--生成实例的表-->
 
-        <table tableName="user"></table>
-        <table tableName="role"></table>
-        <table tableName="user_role"></table>
-
-
+<!--        <table tableName="user"></table>-->
+<!--        <table tableName="role"></table>-->
+<!--        <table tableName="user_role"></table>-->
+<!--        <table tableName="article"></table>-->
+<!--        <table tableName="tag"></table>-->
+        <table tableName="article_category" />
+        <table tableName="article_tag" />
     </context>
 </generatorConfiguration>

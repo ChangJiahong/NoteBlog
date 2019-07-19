@@ -11,7 +11,7 @@ import javax.annotation.Resource;
  * @author CJH
  * on 2019/3/13
  */
-//@ControllerAdvice
+@ControllerAdvice
 public class WebMvcConfig implements WebMvcConfigurer {
 
     @Resource
@@ -20,11 +20,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(baseInterceptor).excludePathPatterns("/admin/images/**","/admin/css/**","/admin/js/**","/admin/plugins/**");
+        registry.addInterceptor(baseInterceptor);
     }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/upload/**").addResourceLocations("file:"+ "D://upload/");
+        registry.addResourceHandler("/file/**").addResourceLocations("file:"+ "D://upload/");
     }
 }

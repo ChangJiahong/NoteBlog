@@ -41,4 +41,19 @@ public class Table {
          */
         created
     }
+
+    public enum Tag {
+        /**
+         * 主键
+         */
+        id,
+        /**
+         * 名字
+         */
+        name,
+        /**
+         * 类型[tag, category]
+         */
+        type
+    }
 }

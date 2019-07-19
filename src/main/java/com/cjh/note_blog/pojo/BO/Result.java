@@ -1,5 +1,8 @@
 package com.cjh.note_blog.pojo.BO;
 
+import com.cjh.note_blog.constant.StatusCode;
+import com.cjh.note_blog.pojo.VO.RestResponse;
+
 /**
  * 业务对象
  * 服务层 向 业务层返回
@@ -8,102 +11,175 @@ package com.cjh.note_blog.pojo.BO;
  */
 public class Result<T> {
 
+    /**
+     * 返回标志
+     */
     private Boolean success ;
 
-    private Integer code ;
+    /**
+     * 状态码 + 状态信息
+     */
+    private StatusCode statusCode;
 
-    private String msg ;
-
+    /**
+     * 如果有数据返回，表示返回的数据对象
+     */
     private T data ;
 
-    public Result(){
-        this(true);
+    private Result(boolean success){
+        this(success, StatusCode.OK);
     }
 
-    public Result(boolean success){
-        this(success, "");
+    /**
+     *
+     * @param success
+     * @param statusCode
+     */
+    private Result(boolean success, StatusCode statusCode){
+        this(success, statusCode, null);
     }
 
-    public Result(boolean success, String msg){
-        this(success, msg, null);
-    }
-
-    public Result(boolean success, String msg, T data) {
+    /**
+     *
+     * @param success
+     * @param statusCode
+     * @param data
+     */
+    private Result(boolean success, StatusCode statusCode, T data) {
         this.success = success;
-        this.msg = msg;
+        this.statusCode = statusCode;
         this.data = data;
     }
 
-    public Result(Boolean success, Integer code, String msg){
-        this(success, code, msg, null);
+
+
+    /**
+     * 请求成功 默认返回
+     * @return
+     */
+    public static Result ok() {
+        return ok(StatusCode.OK);
     }
 
-    public Result(Boolean success, Integer code, String msg, T data) {
-        this.success = success;
-        this.code = code;
-        this.msg = msg;
+    /**
+     * 返回状态码 无数据
+     * @param statusCode
+     * @return
+     */
+    public static Result ok(StatusCode statusCode) {
+        return new Result(true, statusCode);
     }
 
-    public static Result ok(){
-        return new Result();
+    /**
+     * 返回数据 状态码默认ok
+     * @param data
+     * @param <T>
+     * @return
+     */
+    public static <T> Result ok(T data) {
+        return ok(StatusCode.OK, data);
     }
 
-    public static Result ok(String msg){
-        return new Result(true, msg);
+    /**
+     * 返回状态码 和 数据
+     * @param statusCode
+     * @param data
+     * @param <T>
+     * @return
+     */
+    public static <T> Result ok(StatusCode statusCode, T data) {
+        return new Result<T>(true, statusCode, data);
     }
 
-    public static <T> Result ok(String msg, T data){
-        return new Result<T>(true, msg, data);
+
+    /**
+     * [失败] 请求失败 默认返回
+     * @return
+     */
+    public static Result fail() {
+        return fail(StatusCode.FAIL);
     }
 
-    public static <T> Result ok(T data){
-        return new Result<T>(true, "", data);
+    /**
+     * [失败] 一般错误， 返回错误信息
+     * @return
+     */
+    public static Result fail(String msg) {
+        return fail(StatusCode.FAIL);
     }
 
-    public static Result fail(){
-        return new Result(false);
+    /**
+     * [失败] 返回状态码 无数据
+     * @param statusCode
+     * @return
+     */
+    public static Result fail(StatusCode statusCode) {
+        return new Result(false, statusCode);
     }
 
-    public static Result fail(String msg){
-        return fail(500, msg);
+    /**
+     * [失败] 返回数据 状态码默认 fail
+     * @param data
+     * @param <T>
+     * @return
+     */
+    public static <T> Result fail(T data) {
+        return fail(StatusCode.FAIL, data);
     }
 
-    public static Result fail(int code, String msg){
-        return new Result(false, code, msg);
+    /**
+     * [失败] 返回状态码 和 数据
+     * @param statusCode
+     * @param data
+     * @param <T>
+     * @return
+     */
+    public static <T> Result fail(StatusCode statusCode, T data) {
+        return new Result<T>(false, statusCode, data);
     }
 
-    public static <T> Result fial(String msg, T data){
-        return fial(500, msg, data);
-    }
 
-    public static <T> Result fial(int code, String msg, T data){
-        return new Result<T>(false,code, msg, data);
-    }
     public Boolean isSuccess() {
         return success;
     }
 
-    public String getMsg() {
-        return msg;
+    /**
+     * 获取状态码
+     * @return
+     */
+    public StatusCode getStatusCode() {
+        return statusCode;
     }
 
-    public void setMsg(String msg) {
-        this.msg = msg;
+    /**
+     * 设置状态码
+     * @param statusCode
+     */
+    public void setStatusCode(StatusCode statusCode) {
+        this.statusCode = statusCode;
     }
 
+    /**
+     * 获取数据
+     * @return
+     */
     public T getData() {
         return data;
     }
 
+    /**
+     * 设置数据
+     * @param data
+     */
     public void setData(T data) {
         this.data = data;
     }
 
-    public Integer getCode() {
-        return code;
+    public int getCode() {
+        return this.statusCode.code();
     }
 
-    public void setCode(Integer code) {
-        this.code = code;
+    public String getMsg() {
+        return this.statusCode.msgCN();
     }
 }
