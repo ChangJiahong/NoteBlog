@@ -32,7 +32,7 @@ public class TagServiceImpl implements ITagService {
     /**
      * 查找tag
      *
-     * @param name
+     * @param tag
      * @return
      */
     @Override
@@ -71,6 +71,6 @@ public class TagServiceImpl implements ITagService {
 
         Date now = DateUtils.getNow();
         tag.setCreated(now);
-        tagMapper.insertSelective(tag);
+        tagMapper.insertUseGeneratedKeys(tag);
     }
 }

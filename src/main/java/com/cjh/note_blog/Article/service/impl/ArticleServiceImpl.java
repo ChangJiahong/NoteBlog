@@ -1,5 +1,7 @@
 package com.cjh.note_blog.Article.service.impl;
 
+import com.cjh.note_blog.ArticleCategoryRela.service.IArticleCategoryRelaService;
+import com.cjh.note_blog.ArticleTagRela.service.IArticleTagRelaService;
 import com.cjh.note_blog.Tag.service.ITagService;
 import com.cjh.note_blog.Tag.service.Impl.TagServiceImpl;
 import com.cjh.note_blog.constant.StatusCode;
@@ -8,6 +10,7 @@ import com.cjh.note_blog.mapper.ArticleMapper;
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.Article;
 import com.cjh.note_blog.Article.service.IArticleService;
+import com.cjh.note_blog.pojo.DO.ArticleTag;
 import com.cjh.note_blog.pojo.DO.Tag;
 import com.cjh.note_blog.utils.DateUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -33,6 +37,12 @@ public class ArticleServiceImpl implements IArticleService {
 
     @Autowired
     private ITagService tagService;
+
+    @Autowired
+    private IArticleCategoryRelaService categoryRelaService;
+
+    @Autowired
+    private IArticleTagRelaService tagRelaService;
 
     /**
      * 创建文章或修改文章
@@ -90,18 +100,65 @@ public class ArticleServiceImpl implements IArticleService {
         // TODO: 摘要文章前100字
         article.setInfo("");
 
-        // TODO: 分类管理
-        List<Tag> categorys = article.getCategorys();
-        // 如果不存在则创建失败
-        if (!categorys.isEmpty()){
+        // 更新文章
+        int i = articleMapper.updateByPrimaryKeySelective(article);
+        if (i <= 0){
+
+            // error: 执行数据库错误
+            return Result.fail(StatusCode.ExecutionDatabaseError);
 
         }
 
-        // TODO: 标签管理
+
+        // 分类管理
+        List<Tag> categorys = article.getCategorys();
+        // 如果不存在则创建失败
+        if (!categorys.isEmpty()){
+            // 遍历categorys 不存在的创建
+
+            List<Tag> ins = new ArrayList<>();
+
+            for (Tag category : categorys) {
+                Result res = tagService.select(category);
+                if (res.isSuccess()) {
+                    // 存在标签
+                    category = (Tag) res.getData();
+                } else if (res.getStatusCode() == StatusCode.DataNotFound) {
+                    // 不存在种类
+                    // 返回不存在错误
+                    return Result.fail(StatusCode.CategoryNotExist);
+                }
+
+                ins.add(category);
+
+            }
+
+            // 关联文章 删除无效的， 插入关联的
+
+            List<Tag> categoryOlds = categoryRelaService.selectByArticleId(article.getId());
+
+            List<Tag> del = new ArrayList<>(categoryOlds);
+
+            //需要删除的
+            del.removeAll(ins);
+            //需要插入的
+            ins.removeAll(categoryOlds);
+
+            categoryRelaService.delete(article.getId(), del);
+            categoryRelaService.create(article.getId(), ins);
+
+
+        }
+
+        // 标签管理
         List<Tag> tags = article.getTags();
         // 如果不存在该标签，则创建新的标签
         if (!tags.isEmpty()){
 
+
+            List<Tag> ins = new ArrayList<>();
+
+            // 遍历tag 不存在的创建
             for (Tag tag : tags) {
                 Result res = tagService.select(tag);
                 if (res.isSuccess()) {
@@ -113,24 +170,32 @@ public class ArticleServiceImpl implements IArticleService {
                     tagService.create(tag);
                 }
 
-                // 关联文章
-
-
+                ins.add(tag);
             }
 
 
+            // 关联文章 删除无效的， 插入关联的
+
+            List<Tag> olds = tagRelaService.selectByArticleId(article.getId());
+
+            List<Tag> del = new ArrayList<>(olds);
+
+            //需要删除的
+            del.removeAll(ins);
+            //需要插入的
+            ins.removeAll(olds);
+
+            tagRelaService.delete(article.getId(), del);
+            tagRelaService.create(article.getId(), ins);
+
         }
 
 
-        // 更新文章
-        int i = articleMapper.updateByPrimaryKeySelective(article);
-        if (i > 0){
-            // 修改成功
-            return Result.ok();
-        }
+        // 修改成功
 
-        // error: 执行数据库错误
-        return Result.fail(StatusCode.ExecutionDatabaseError);
+        return Result.ok();
+
+
     }
 
     /**
@@ -155,24 +220,74 @@ public class ArticleServiceImpl implements IArticleService {
         // TODO: 摘要文章前100字
         article.setInfo("");
 
-        // TODO: 分类管理
-        List<Tag> category = article.getCategorys();
-        // 如果不存在则创建失败
 
-        // TODO: 标签管理
-        List<Tag> tag = article.getTags();
-        // 如果不存在该标签，则创建新的标签
+        int i = articleMapper.insertUseGeneratedKeys(article);
 
+        if (i <= 0){
 
-        int i = articleMapper.insertSelective(article);
+            // error: 执行数据库错误
+            return Result.fail(StatusCode.ExecutionDatabaseError);
 
-        if (i > 0){
-            // 创建成功
-            return Result.ok();
         }
 
-        // 创建文章失败
-        return Result.fail(StatusCode.ExecutionDatabaseError);
+
+        // 分类管理
+        List<Tag> categorys = article.getCategorys();
+        // 如果不存在则创建失败
+        if (!categorys.isEmpty()){
+            // 遍历categorys 不存在的创建
+            List<Tag> ins = new ArrayList<>();
+            for (Tag category : categorys) {
+                Result res = tagService.select(category);
+                if (res.isSuccess()) {
+                    // 存在 种类
+                    category = (Tag) res.getData();
+                } else if (res.getStatusCode() == StatusCode.DataNotFound) {
+                    // 不存在种类
+                    // 返回不存在错误
+                    return Result.fail(StatusCode.CategoryNotExist);
+                }
+                ins.add(category);
+            }
+
+            // 关联文章 新建文章， 无关联，直接插入
+
+            categoryRelaService.create(article.getId(), ins);
+
+
+        }
+
+        // 标签管理
+        List<Tag> tags = article.getTags();
+        // 如果不存在该标签，则创建新的标签
+        if (!tags.isEmpty()){
+
+            List<Tag> ins = new ArrayList<>();
+            // 遍历tag 不存在的创建
+            for (Tag tag : tags) {
+                Result res = tagService.select(tag);
+                if (res.isSuccess()) {
+                    // 存在标签
+                    tag = (Tag) res.getData();
+                } else if (res.getStatusCode() == StatusCode.DataNotFound) {
+                    // 不存在标签
+                    // 创建标签
+                    tagService.create(tag);
+                }
+
+                ins.add(tag);
+            }
+
+
+            // 关联文章 新建文章， 无关联，直接插入
+
+            tagRelaService.create(article.getId(), ins);
+
+        }
+
+
+        // 创建成功
+        return Result.ok();
     }
 
     /**

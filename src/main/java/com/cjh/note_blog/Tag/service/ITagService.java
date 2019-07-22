@@ -23,5 +23,6 @@ public interface ITagService {
      * 创建标签
      * @param tag
      */
+
     public void create(Tag tag);
 }

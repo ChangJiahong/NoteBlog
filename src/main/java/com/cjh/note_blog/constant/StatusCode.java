@@ -103,6 +103,11 @@ public enum StatusCode {
      */
     ArticleStatusIsEmpty(30005, "The Post Status Is Not Empty", "文章状态不能为空"),
 
+    /**
+     * 文章种类不存在
+     */
+    CategoryNotExist(30006, "Article Category Not Exist", "文章种类不存在"),
+
 
     /* 系统错误：40001-49999 */
 
@@ -133,6 +138,7 @@ public enum StatusCode {
      * 执行数据库错误
      */
     ExecutionDatabaseError(50005, "Execution Database Error", "执行数据库错误"),
+
 
     /* 接口错误：60001-69999 */
 
