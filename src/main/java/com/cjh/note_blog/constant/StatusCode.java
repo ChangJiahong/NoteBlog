@@ -52,6 +52,10 @@ public enum StatusCode {
      * 参数缺失
      */
     ParametersAreMissing(10004, "Parameters Are Missing", "参数缺失"),
+    /**
+     * 参数验证错误
+     */
+    ParameterVerificationError(10005, "Parameter Verification Error", "参数验证错误"),
 
     /* 用户错误：20001~29999   */
 
@@ -75,6 +79,10 @@ public enum StatusCode {
      * 用户已存在
      */
     TheUserAlreadyExists(20005, "The User Already Exists","用户已存在"),
+    /**
+     * 用户权限不足
+     */
+    InadequateUserRights(20006, "Inadequate User Rights", "用户权限不足"),
     /**
      * 密码错误
      */

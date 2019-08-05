@@ -1,5 +1,7 @@
 package com.cjh.note_blog.pojo.DO;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -52,7 +54,7 @@ public class User implements Serializable {
      */
     private Date created;
 
-    private List<Role> roles;
+    private List<String> roles;
 
     private static final long serialVersionUID = 1L;
 
@@ -115,6 +117,7 @@ public class User implements Serializable {
      *
      * @return password - 密码
      */
+    @JsonIgnore
     public String getPassword() {
         return password;
     }
@@ -205,7 +208,7 @@ public class User implements Serializable {
      *
      * @return
      */
-    public List<Role> getRoles() {
+    public List<String> getRoles() {
         return roles;
     }
 
@@ -213,7 +216,7 @@ public class User implements Serializable {
      * 设置角色集合
      * @param roles
      */
-    public void setRoles(List<Role> roles) {
+    public void setRoles(List<String> roles) {
         this.roles = roles;
     }
 }

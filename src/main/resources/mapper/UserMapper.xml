@@ -15,10 +15,8 @@
     <result column="age" property="age" jdbcType="INTEGER" />
     <result column="created" property="created" jdbcType="INTEGER" />
 
-    <collection property="roles" ofType="Role" >
-        <id property="rid" column="rid" />
+    <collection property="roles" ofType="String" >
         <result property="rname" column="rname" />
-        <result property="created" column="rCreated" />
     </collection>
 
   </resultMap>

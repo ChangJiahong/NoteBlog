@@ -1,11 +1,12 @@
 package com.cjh.note_blog.handler;
 
-import com.cjh.note_blog.Cache.service.ICache;
+import com.cjh.note_blog.CSD.Cache.service.ICache;
 import com.cjh.note_blog.annotations.PassToken;
 import com.cjh.note_blog.annotations.UserLoginToken;
 import com.cjh.note_blog.constant.StatusCode;
 import com.cjh.note_blog.constant.WebConst;
 import com.cjh.note_blog.pojo.BO.Result;
+import com.cjh.note_blog.pojo.DO.Role;
 import com.cjh.note_blog.pojo.DO.User;
 import com.cjh.note_blog.pojo.VO.RestResponse;
 import com.cjh.note_blog.utils.GsonUtils;
@@ -19,12 +20,16 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.management.relation.RoleList;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * url 拦截器
@@ -40,6 +45,11 @@ public class BaseInterceptor implements HandlerInterceptor {
 
     @Autowired
     private ICache cache ;
+
+    /**
+     * 需要验证的权限
+     */
+    private String requiredRole;
 
     /**
      * 开始拦截 调用处理程序之前
@@ -67,7 +77,117 @@ public class BaseInterceptor implements HandlerInterceptor {
         }
 
         HandlerMethod handlerMethod = (HandlerMethod) handler;
+
+
+        // 检查是否需要验证token
+        boolean isPassToken = checkPassToken(handlerMethod);
+
+        if (isPassToken){
+            LOGGE.info("["+uri+"]:免验证");
+            return true;
+        }
+
+        /*
+            从请求头
+            获取token
+         */
+        String token = getToken(request);
+
+        LOGGE.info("来路地址："+uri);
+        LOGGE.info("contextPath："+contextPath);
+        LOGGE.info("token:"+token);
+
+        // 验证解析token
+        Result result = TokenUtil.checkToken(token);
+
+        if (result.isSuccess()){
+            // 身份验证成功
+            // 允许访问
+            // 保存user
+            String email = (String) result.getData();
+            // 缓存获取 用户信息，没有则返回登录失效
+            User user = cache.get(email);
+            if (user != null){
+                // 验证权限
+                boolean bingo = compareRole(user.getRoles(), requiredRole);
+
+                if (bingo){
+                    request.setAttribute(WebConst.LOGIN_USER_KEY, user);
+                    return true;
+                }
+                // error: 用户权限不足
+                result = Result.fail(StatusCode.InadequateUserRights);
+
+            }else {
+                // error: 登录状态失效
+                result = Result.fail(StatusCode.LogonStateFailure);
+            }
+        }
+
+        response.setHeader("Content-type", "text/json;charset=UTF-8");
+        PrintWriter out = response.getWriter();
+        // 身份验证失败
+        // 没有访问权限
+        out.print(GsonUtils.toJsonString(RestResponse.fail(result)));
+        return false;
+    }
+
+    private boolean compareRole(List<String> roleList, String requiredRole) {
+        boolean bingo = false;
+        int b = getIntegerForRole(requiredRole);
+
+        for (String role : roleList){
+            int a = getIntegerForRole(role);
+            if (a >= b){
+                bingo = true;
+            }
+        }
+        return bingo;
+    }
+
+    /**
+     * 获得角色值
+     * @param role
+     * @return
+     */
+    private int getIntegerForRole(String role) {
+        switch (role){
+            case Role.SUPER_ADMIN:
+                return 3;
+            case Role.ADMIN:
+                return 2;
+            case Role.USER:
+                return 1;
+            default:
+                return 0;
+        }
+    }
+
+    private String getToken(HttpServletRequest request) {
+        /*
+             token = "Bearer "+token
+         */
+        String token = request.getHeader("token");
+
+        if (StringUtils.isBlank(token)){
+            token = request.getHeader("Authorization");
+            if (StringUtils.isNotBlank(token) && token.startsWith("Bearer ")) {
+                //如果header中存在token，则覆盖掉url中的token
+                // "Bearer "之后的内容
+                token = token.substring("Bearer ".length());
+            }
+        }
+        return token;
+    }
+
+    private boolean checkPassToken(HandlerMethod handlerMethod) {
+
         Class cls = handlerMethod.getBeanType();
+        /*
+            是否验证
+            false 验证
+            true 取消验证
+         */
         boolean isPassToken = false;
 
         /*
@@ -81,66 +201,31 @@ public class BaseInterceptor implements HandlerInterceptor {
         Method method=handlerMethod.getMethod();
         // 方法级 验证是否有passToken注解
         isPassToken = isPassToken(method, isPassToken);
-
-
-        if (isPassToken){
-            LOGGE.info("["+uri+"]:跳过验证");
-            return true;
-        }
-
-
-        /*
-            token = "Bearer "+token
-         */
-        String token = request.getHeader("token");
-
-        if (StringUtils.isBlank(token)){
-            token = request.getHeader("Authorization");
-            if (StringUtils.isNotBlank(token) && token.startsWith("Bearer ")) {
-                //如果header中存在token，则覆盖掉url中的token
-                token = token.substring("Bearer ".length()); // "Bearer "之后的内容
-            }
-        }
-
-        LOGGE.info("来路地址："+uri);
-        LOGGE.info("contextPath："+contextPath);
-        LOGGE.info("token:"+token);
-
-        Result result = TokenUtil.checkToken(token);
-
-        if (result.isSuccess()){
-            // 身份验证成功
-            // 允许访问
-            // 保存user
-            String email = (String) result.getData();
-            // 缓存获取 用户信息，没有则返回登录失效
-            User user = cache.get(email);
-            if (user != null){
-                request.setAttribute(WebConst.LOGIN_USER_KEY, user);
-                return true;
-            }
-            // error: 登录状态失效
-            result = Result.fail(StatusCode.LogonStateFailure);
-        }
-
-        response.setHeader("Content-type", "text/json;charset=UTF-8");
-        PrintWriter out = response.getWriter();
-        // 身份验证失败
-        // 没有访问权限
-        out.print(GsonUtils.toJsonString(RestResponse.fail(result)));
-        return false;
+        return isPassToken;
     }
 
-    private boolean isPassToken(AnnotatedElement method, boolean isPassToken) {
-        if (method.isAnnotationPresent(PassToken.class)){
-            PassToken passToken = (PassToken) method.getAnnotation(PassToken.class);
-            isPassToken = passToken.required();
-        }else if (method.isAnnotationPresent(UserLoginToken.class)){
-            UserLoginToken userLoginToken = (UserLoginToken) method.getAnnotation(UserLoginToken.class);
-            isPassToken = !userLoginToken.required();
+    /**
+     * 检查token注解
+     * @param ae
+     * @param isPassToken
+     * @return
+     */
+    private boolean isPassToken(AnnotatedElement ae, boolean isPassToken) {
+        if (ae.isAnnotationPresent(UserLoginToken.class)){
+            // 有 UserLoginToken 注释，进行权限验证
+            UserLoginToken userLoginToken = (UserLoginToken) ae.getAnnotation(UserLoginToken.class);
+            requiredRole = userLoginToken.value();
+
+            isPassToken = false;
+        }else if (ae.isAnnotationPresent(PassToken.class)){
+            PassToken passToken = (PassToken) ae.getAnnotation(PassToken.class);
+            // 有 PassToken 注释，不要验证
+            isPassToken = true;
         }
         return isPassToken;
     }
+
+
 
 
     /**
@@ -155,7 +240,6 @@ public class BaseInterceptor implements HandlerInterceptor {
         // 请求结束
         // 清除用户信息
         request.removeAttribute(WebConst.LOGIN_USER_KEY);
-
     }
 
     /**

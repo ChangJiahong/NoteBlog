@@ -9,6 +9,7 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
 
 import com.cjh.note_blog.constant.StatusCode;
+import com.cjh.note_blog.handler.GlobalExceptionHandler;
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.User;
 import io.jsonwebtoken.Claims;
@@ -19,12 +20,15 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.SignatureException;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class TokenUtil {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(TokenUtil.class);
 
 	private static final String CLAIM_KEY_Email = "sub";
 	private static final String CLAIM_KEY_ID = "id";
@@ -58,12 +62,14 @@ public class TokenUtil {
 	 * @param token
 	 * @return
 	 */
-	public static String getEmailFromToken(String token) throws MalformedJwtException {
+	public static String getEmailFromToken(String token) throws MalformedJwtException, ExpiredJwtException {
 		String username;
 		try {
 			username =getClaimsFromToken(token).getSubject();
 		} catch (MalformedJwtException mje){
 			throw mje;
+		} catch (ExpiredJwtException e){
+			throw e;
 		} catch (Exception e) {
 			username = null;
 		}
@@ -76,7 +82,7 @@ public class TokenUtil {
 	 * @param token
 	 * @return
 	 */
-	public static Date getCreatedDateFromToken(String token) throws MalformedJwtException {
+	private static Date getCreatedDateFromToken(String token) throws MalformedJwtException {
 		Date created;
 		try {
 			final Claims claims = getClaimsFromToken(token);
@@ -89,36 +95,25 @@ public class TokenUtil {
 		return created;
 	}
 
-	/**
-	 * 获取有效期
-	 * @param token
-	 * @return
-	 */
-	public static Date getExpirationDateFromToken(String token) throws MalformedJwtException {
-		Date expiration;
-		try {
-			final Claims claims = getClaimsFromToken(token);
-			expiration = claims.getExpiration();
-		} catch (MalformedJwtException mje){
-			throw mje;
-		} catch (Exception e) {
-			expiration = null;
-		}
-		return expiration;
-	}
 
 	/**
 	 * 获取参数表
 	 * @param token
 	 * @return
 	 */
-	public static Claims getClaimsFromToken(String token) throws MalformedJwtException {
+	private static Claims getClaimsFromToken(String token) throws MalformedJwtException, ExpiredJwtException {
 		Claims claims;
 		try {
 			claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
-		} catch (MalformedJwtException mje){
-			throw mje;
+		} catch (MalformedJwtException e){
+			// token 不合法 || token 过期
+			LOGGER.error("token 不合法，"+e.getMessage());
+			throw e;
+		} catch (ExpiredJwtException e){
+			LOGGER.error("token 过期，"+e.getMessage());
+			throw e;
 		} catch (Exception e) {
+			LOGGER.error(e.getMessage());
 			claims = null;
 		}
 		return claims;
@@ -132,19 +127,6 @@ public class TokenUtil {
 		return new Date(System.currentTimeMillis() + expiration * 1000);
 	}
 
-	/**
-	 * token是否过期
-	 * 过期 return true
-	 * 有效 return false
-	 * @param token
-	 * @return
-	 */
-	public static Boolean isTokenExpired(String token) throws MalformedJwtException {
-
-		final Date expiration = getExpirationDateFromToken(token);
-
-		return expiration.before(new Date());
-	}
 
 	/**
 	 * 生成token
@@ -152,7 +134,7 @@ public class TokenUtil {
 	 * @return
 	 */
 	public static String generateToken(User userDetails) {
-		Map<String, Object> claims = new HashMap<>();
+		Map<String, Object> claims = new HashMap<>(10);
 		claims.put(CLAIM_KEY_Email, userDetails.getEmail());
 		claims.put(CLAIM_KEY_CREATED, new Date());
 		claims.put(CLAIM_KEY_ID, userDetails.getUid());
@@ -166,7 +148,7 @@ public class TokenUtil {
 	 * @param claims
 	 * @return
 	 */
-	public static String generateToken(Map<String, Object> claims) {
+	private static String generateToken(Map<String, Object> claims) {
 		return Jwts.builder()
 				.setClaims(claims)
 				.setExpiration(generateExpirationDate())
@@ -174,11 +156,6 @@ public class TokenUtil {
 				.compact();
 	}
 
-
-
-	public static Boolean canTokenBeRefreshed(String token) {
-		return !isTokenExpired(token);
-	}
 
 	/**
 	 * 刷新token
@@ -199,17 +176,6 @@ public class TokenUtil {
 		return refreshedToken;
 	}
 
-	/**
-	 * 验证token
-	 * @param token
-	 * @return
-	 */
-	public static Boolean validateToken(String token) {
-		final String email = getEmailFromToken(token);
-		return (email != null
-						&& !isTokenExpired(token));
-	}
-
 
 	/**
 	 * 检查token
@@ -222,18 +188,10 @@ public class TokenUtil {
 			// token为空
 			return Result.fail(StatusCode.TokenIsEmpty);
 		}
-		try {
-			if (isTokenExpired(token)){
-				// error: token过期
-				return Result.fail(StatusCode.TokenExpired);
-			}
-			String email = getEmailFromToken(token);
-			if (email != null){
-				return Result.ok(email);
-			}
-		}catch (MalformedJwtException e){
-			// error: token不合法
-			return Result.fail(StatusCode.TokenIsNotValid);
+
+		String email = getEmailFromToken(token);
+		if (email != null){
+			return Result.ok(email);
 		}
 
 		// error: token不合法

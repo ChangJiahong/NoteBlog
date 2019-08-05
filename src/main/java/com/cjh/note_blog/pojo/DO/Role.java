@@ -6,9 +6,26 @@ import javax.persistence.*;
 
 /**
  * 数据对象
- * ：角色表
+ * 角色表(超级管理员(superAdmin)、管理员(admin)、用户(user))
  */
 public class Role implements Serializable {
+
+    /**
+     * 超级管理员角色
+     */
+    public static final String SUPER_ADMIN = "superAdmin";
+
+    /**
+     * 普通管理员角色
+     */
+    public static final String ADMIN = "admin";
+
+    /**
+     * 普通用户角色
+     */
+    public static final String USER = "user";
+
+
     /**
      * 自增主键
      */

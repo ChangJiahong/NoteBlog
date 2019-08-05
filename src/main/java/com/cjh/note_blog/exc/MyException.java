@@ -1,6 +1,7 @@
 package com.cjh.note_blog.exc;
 
 /**
+ * 非检查型异常
  * @author CJH
  * on 2019/3/13
  */

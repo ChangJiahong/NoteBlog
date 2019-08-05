@@ -1,5 +1,7 @@
 package com.cjh.note_blog.annotations;
 
+import com.cjh.note_blog.pojo.DO.Role;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -18,5 +20,16 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface UserLoginToken {
-    boolean required() default true;
+    /**
+     * 是否需要验证
+     * @return
+     */
+//    boolean required() default true;
+
+    /**
+     * 该类或方法至少需要的访问权限
+     * 默认为最低权限
+     * @return
+     */
+    String value() default Role.USER;
 }
