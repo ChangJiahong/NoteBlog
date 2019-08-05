@@ -1,8 +1,12 @@
 package com.cjh.note_blog.utils;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.cjh.note_blog.pojo.DO.User;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.codec.json.Jackson2JsonDecoder;
+import org.springframework.web.servlet.view.InternalResourceViewResolver;
+
+import java.io.IOException;
 
 /**
  * ：
@@ -13,7 +17,8 @@ import com.google.gson.JsonParser;
 
 public class GsonUtils {
 
-    private static final Gson gson = new Gson();
+//    private static final Gson gson = new Gson();
+
 
     /**
      * 对象转josn字符串
@@ -21,7 +26,14 @@ public class GsonUtils {
      * @return
      */
     public static String toJsonString(Object object){
-        return object==null?null:gson.toJson(object);
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return null;
+//        return object==null?null:gson.toJson(object);
     }
 
 
@@ -29,9 +41,17 @@ public class GsonUtils {
      * 反序列化
      */
     public static <T> T json2Obj(String json, Class<T> tClass){
+
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.readValue(json, tClass);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
         //Json的解析类对象
-        JsonParser parser = new JsonParser();
-        parser.parse(json).getAsJsonObject();
-        return gson.fromJson(json, tClass);
+//        JsonParser parser = new JsonParser();
+//        parser.parse(json).getAsJsonObject();
+//        return gson.fromJson(json, tClass);
     }
 }

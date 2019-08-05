@@ -219,4 +219,19 @@ public class User implements Serializable {
     public void setRoles(List<String> roles) {
         this.roles = roles;
     }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "uid=" + uid +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", imgUrl='" + imgUrl + '\'' +
+                ", sex=" + sex +
+                ", age=" + age +
+                ", created=" + created +
+                ", roles=" + roles +
+                '}';
+    }
 }

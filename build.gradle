@@ -6,7 +6,7 @@ plugins {
 apply plugin: 'io.spring.dependency-management'
 
 group = 'com.cjh'
-version = '0.0.1-SNAPSHOT'
+version = '0.0.1-dev'
 sourceCompatibility = '1.8'
 
 repositories {
@@ -46,7 +46,7 @@ dependencies {
     /**
      * Google json
      */
-    implementation 'com.google.code.gson:gson:2.8.0'
+//    implementation 'com.google.code.gson:gson:2.8.0'
 
     /**
      * JWT json web token
