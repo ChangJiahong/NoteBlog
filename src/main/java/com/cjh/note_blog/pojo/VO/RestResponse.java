@@ -69,7 +69,7 @@ public class RestResponse<T> {
      * @param <T>
      * @return
      */
-    public static <T> RestResponse ok(StatusCode statusCode) {
+    public static RestResponse ok(StatusCode statusCode) {
         return new RestResponse(statusCode.code(),statusCode.msgCN());
     }
 
@@ -79,11 +79,11 @@ public class RestResponse<T> {
      * @param <T>
      * @return
      */
-    public static <T> RestResponse ok(T data) {
+    public static <T> RestResponse<T> ok(T data) {
         return ok(StatusCode.OK, data);
     }
 
-    public static <T> RestResponse ok(Result<T> result){
+    public static <T> RestResponse<T> ok(Result<T> result){
         return new RestResponse<T>(result.getCode(), result.getMsg(), result.getData());
     }
 
@@ -94,7 +94,7 @@ public class RestResponse<T> {
      * @param <T>
      * @return
      */
-    public static <T> RestResponse ok(StatusCode statusCode, T data) {
+    public static <T> RestResponse<T> ok(StatusCode statusCode, T data) {
         return new RestResponse<T>(statusCode.code(), statusCode.msgCN(), data);
     }
 
@@ -113,7 +113,7 @@ public class RestResponse<T> {
      * @param <T>
      * @return
      */
-    public static <T> RestResponse fail(Result<T> result){
+    public static <T> RestResponse<T> fail(Result<T> result){
         return new RestResponse<T>(result.getCode(), result.getMsg(), result.getData());
     }
 
@@ -123,7 +123,7 @@ public class RestResponse<T> {
      * @param <T>
      * @return
      */
-    public static <T> RestResponse fail(StatusCode statusCode) {
+    public static RestResponse fail(StatusCode statusCode) {
         return new RestResponse(statusCode.code(),statusCode.msgCN());
     }
 
@@ -133,7 +133,7 @@ public class RestResponse<T> {
      * @param <T>
      * @return
      */
-    public static <T> RestResponse fail(T data) {
+    public static <T> RestResponse<T> fail(T data) {
         return fail(StatusCode.FAIL, data);
     }
 
@@ -144,7 +144,7 @@ public class RestResponse<T> {
      * @param <T>
      * @return
      */
-    public static <T> RestResponse fail(StatusCode statusCode, T data) {
+    public static <T> RestResponse<T> fail(StatusCode statusCode, T data) {
         return new RestResponse<T>(statusCode.code(), statusCode.msgCN(), data);
     }
 

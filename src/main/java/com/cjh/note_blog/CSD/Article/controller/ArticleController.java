@@ -35,7 +35,7 @@ public class ArticleController extends BaseController {
     private IArticleService articleService ;
 
     /**
-     * 发布文章
+     * 发布文章|保存
      * @param article
      * @param request
      * @return
@@ -82,7 +82,5 @@ public class ArticleController extends BaseController {
         // 请求成功，返回文章信息
         return RestResponse.ok(result);
     }
-
-    
 
 }

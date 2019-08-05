@@ -28,14 +28,9 @@ public class Article implements Serializable {
     private Integer authorId;
 
     /**
-     * 文章种类
+     * 文章标签、种类
      */
-    private List<Tag> categorys;
-
-    /**
-     * 文章标签
-     */
-    private List<Tag> tags;
+    private List<Type> types;
 
     /**
      * 描述信息
@@ -121,42 +116,6 @@ public class Article implements Serializable {
      */
     public void setAuthorId(Integer authorId) {
         this.authorId = authorId;
-    }
-
-    /**
-     * 获取文章种类
-     *
-     * @return category - 文章种类
-     */
-    public List<Tag> getCategorys() {
-        return categorys;
-    }
-
-    /**
-     * 设置文章种类
-     *
-     * @param categorys 文章种类
-     */
-    public void setCategorys(List<Tag> categorys) {
-        this.categorys = categorys ;
-    }
-
-    /**
-     * 获取文章标签
-     *
-     * @return tags - 文章标签
-     */
-    public List<Tag> getTags() {
-        return tags;
-    }
-
-    /**
-     * 设置文章标签
-     *
-     * @param tags 文章标签
-     */
-    public void setTags(List<Tag> tags) {
-        this.tags = tags;
     }
 
     /**
@@ -265,5 +224,37 @@ public class Article implements Serializable {
      */
     public void setContent(String content) {
         this.content = content == null ? null : content.trim();
+    }
+
+    /**
+     * 获取文章标签、种类
+     * @return
+     */
+    public List<Type> getTypes() {
+        return types;
+    }
+
+    /**
+     * 设置文章标签、种类
+     * @param types
+     */
+    public void setTypes(List<Type> types) {
+        this.types = types;
+    }
+
+    @Override
+    public String toString() {
+        return "Article{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", authorId=" + authorId +
+                ", types=" + types +
+                ", info='" + info + '\'' +
+                ", hits=" + hits +
+                ", modified=" + modified +
+                ", created=" + created +
+                ", status='" + status + '\'' +
+                ", content='" + content + '\'' +
+                '}';
     }
 }

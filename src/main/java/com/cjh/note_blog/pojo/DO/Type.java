@@ -9,7 +9,7 @@ import javax.persistence.*;
  * 数据对象
  * ：标签 表
  */
-public class Tag implements Serializable {
+public class Type implements Serializable {
 
     /**
      * 标签
@@ -115,13 +115,23 @@ public class Tag implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        Tag tag = (Tag) o;
-        return id.equals(tag.id) &&
-                type.equals(tag.type);
+        Type type = (Type) o;
+        return id.equals(type.id) &&
+                this.type.equals(type.type);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id, type);
+    }
+
+    @Override
+    public String toString() {
+        return "Type{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", type='" + type + '\'' +
+                ", created=" + created +
+                '}';
     }
 }

@@ -19,6 +19,11 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
     /**
+     * aop 依赖
+     */
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+
+    /**
      * mysql jdbc驱动
      */
     implementation 'mysql:mysql-connector-java:8.0.11'

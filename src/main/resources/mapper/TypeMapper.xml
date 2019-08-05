@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.cjh.note_blog.mapper.TagMapper" >
-  <resultMap id="BaseResultMap" type="com.cjh.note_blog.pojo.DO.Tag" >
+<mapper namespace="com.cjh.note_blog.mapper.TypeMapper" >
+  <resultMap id="BaseResultMap" type="com.cjh.note_blog.pojo.DO.Type" >
     <!--
       WARNING - @mbg.generated
     -->

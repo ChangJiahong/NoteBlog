@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.*;
 
-@Table(name = "article_category")
-public class ArticleCategory implements Serializable {
+@Table(name = "article_type")
+public class ArticleType implements Serializable {
     /**
      * 文章id
      */
@@ -16,7 +16,7 @@ public class ArticleCategory implements Serializable {
      * 标签id
      */
     @Id
-    private Integer cid;
+    private Integer tid;
 
     /**
      * 创建时间
@@ -46,19 +46,19 @@ public class ArticleCategory implements Serializable {
     /**
      * 获取标签id
      *
-     * @return cid - 标签id
+     * @return tid - 标签id
      */
-    public Integer getCid() {
-        return cid;
+    public Integer getTid() {
+        return tid;
     }
 
     /**
      * 设置标签id
      *
-     * @param cid 标签id
+     * @param tid 标签id
      */
-    public void setCid(Integer cid) {
-        this.cid = cid;
+    public void setTid(Integer tid) {
+        this.tid = tid;
     }
 
     /**

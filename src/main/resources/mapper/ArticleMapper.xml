@@ -16,19 +16,19 @@
     <result column="content" property="content" jdbcType="LONGVARCHAR" />
 
 
-    <collection property="tags" ofType="Tag" >
+    <collection property="types" ofType="Type" >
       <id property="id" column="tagId" jdbcType="INTEGER" />
       <result property="name" column="tName" />
       <result property="type" column="tType" />
       <result property="created" column="tCreated" />
     </collection>
 
-    <collection property="categorys" ofType="Tag" >
-      <id property="id" column="categoryId" jdbcType="INTEGER" />
-      <result property="name" column="cName" />
-      <result property="type" column="cType" />
-      <result property="created" column="cCreated" />
-    </collection>
+<!--    <collection property="categorys" ofType="Type" >-->
+<!--      <id property="id" column="categoryId" jdbcType="INTEGER" />-->
+<!--      <result property="name" column="cName" />-->
+<!--      <result property="type" column="cType" />-->
+<!--      <result property="created" column="cCreated" />-->
+<!--    </collection>-->
 
 
   </resultMap>
@@ -48,18 +48,11 @@
         t.id tagId,
         t.created tCreated,
         t.`name` tName,
-        t.type tType,
-
-        category.id categoryId,
-        category.created cCreated,
-        category.`name` cName,
-	    category.type cType
+        t.type tType
 
     from article as a
-    LEFT join article_tag as atg on atg.aid = a.id
-    LEFT join tag as t on t.id = atg.tid and t.type = 'tag'
-	LEFT join article_category as ac on ac.aid = a.id
-    LEFT join tag as category on category.id = ac.cid and category.type = 'category'
+    LEFT join article_type as atg on atg.aid = a.id
+    LEFT join `type` as t on t.id = atg.tid
     where a.id = #{id}
   </select>
 

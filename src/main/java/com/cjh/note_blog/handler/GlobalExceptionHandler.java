@@ -2,19 +2,16 @@ package com.cjh.note_blog.handler;
 
 import com.cjh.note_blog.constant.StatusCode;
 import com.cjh.note_blog.exc.ExecutionDatabaseExcepeion;
-import com.cjh.note_blog.exc.MyException;
+import com.cjh.note_blog.exc.StatusCodeException;
 import com.cjh.note_blog.pojo.VO.RestResponse;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.validation.ConstraintViolationException;
@@ -36,11 +33,11 @@ public class GlobalExceptionHandler {
      * @param e
      * @return
      */
-    @ExceptionHandler(value = MyException.class)
-    public RestResponse tipException(Exception e) {
+    @ExceptionHandler(value = StatusCodeException.class)
+    public RestResponse tipException(StatusCodeException e) {
         LOGGER.error("find myException:e={}",e.getMessage());
-        e.printStackTrace();
-        return RestResponse.fail(500, e.getMessage());
+//        e.printStackTrace();
+        return RestResponse.fail(e.getStatusCode(), e.getMessage());
     }
 
     /**
@@ -114,10 +111,10 @@ public class GlobalExceptionHandler {
      * @return
      */
     @ExceptionHandler(value = {ExecutionDatabaseExcepeion.class})
-    public RestResponse executionDatabaseExcepeion(Exception e){
+    public RestResponse executionDatabaseExcepeion(ExecutionDatabaseExcepeion e){
         LOGGER.error("find executionDatabaseExcepeion:e={}",e.getMessage());
 //        e.printStackTrace();
-        return RestResponse.fail(StatusCode.ExecutionDatabaseError, e.getMessage());
+        return RestResponse.fail(e.getStatusCode(), e.getMessage());
     }
 
 

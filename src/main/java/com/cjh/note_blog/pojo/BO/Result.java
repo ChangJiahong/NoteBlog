@@ -21,6 +21,8 @@ public class Result<T> {
      */
     private StatusCode statusCode;
 
+    private String msg ;
+
     /**
      * 如果有数据返回，表示返回的数据对象
      */
@@ -36,7 +38,7 @@ public class Result<T> {
      * @param statusCode
      */
     private Result(boolean success, StatusCode statusCode){
-        this(success, statusCode, null);
+        this(success, statusCode, null, null);
     }
 
     /**
@@ -45,10 +47,31 @@ public class Result<T> {
      * @param statusCode
      * @param data
      */
-    private Result(boolean success, StatusCode statusCode, T data) {
+    private Result(boolean success, StatusCode statusCode, T data){
+        this(success, statusCode, data, null);
+    }
+
+    /**
+     *
+     * @param success
+     * @param statusCode
+     * @param msg
+     */
+    private Result(boolean success, StatusCode statusCode, String msg){
+        this(success, statusCode, null, msg);
+    }
+
+    /**
+     *
+     * @param success
+     * @param statusCode
+     * @param data
+     */
+    private Result(boolean success, StatusCode statusCode, T data, String msg) {
         this.success = success;
         this.statusCode = statusCode;
         this.data = data;
+        this.msg = msg;
     }
 
 
@@ -76,7 +99,7 @@ public class Result<T> {
      * @param <T>
      * @return
      */
-    public static <T> Result ok(T data) {
+    public static <T> Result<T> ok(T data) {
         return ok(StatusCode.OK, data);
     }
 
@@ -87,7 +110,7 @@ public class Result<T> {
      * @param <T>
      * @return
      */
-    public static <T> Result ok(StatusCode statusCode, T data) {
+    public static <T> Result<T> ok(StatusCode statusCode, T data) {
         return new Result<T>(true, statusCode, data);
     }
 
@@ -105,7 +128,7 @@ public class Result<T> {
      * @return
      */
     public static Result fail(String msg) {
-        return fail(StatusCode.FAIL);
+        return fail(StatusCode.FAIL, msg);
     }
 
     /**
@@ -113,29 +136,20 @@ public class Result<T> {
      * @param statusCode
      * @return
      */
-    public static Result fail(StatusCode statusCode) {
-        return new Result(false, statusCode);
+    public static <T> Result<T> fail(StatusCode statusCode) {
+        return new Result<T>(false, statusCode);
     }
 
-    /**
-     * [失败] 返回数据 状态码默认 fail
-     * @param data
-     * @param <T>
-     * @return
-     */
-    public static <T> Result fail(T data) {
-        return fail(StatusCode.FAIL, data);
-    }
 
     /**
-     * [失败] 返回状态码 和 数据
+     * [失败] 返回状态码 和 信息
      * @param statusCode
-     * @param data
+     * @param msg
      * @param <T>
      * @return
      */
-    public static <T> Result fail(StatusCode statusCode, T data) {
-        return new Result<T>(false, statusCode, data);
+    public static <T> Result<T> fail(StatusCode statusCode, String msg) {
+        return new Result<T>(false, statusCode, msg);
     }
 
 
@@ -180,6 +194,6 @@ public class Result<T> {
     }
 
     public String getMsg() {
-        return this.statusCode.msgCN();
+        return this.msg==null?this.statusCode.msgCN():this.msg;
     }
 }

@@ -20,7 +20,7 @@ public abstract class BaseController {
     public ICache cache ;
 
     public User getUser(HttpServletRequest request){
-        User user = (User) request.getSession().getAttribute(WebConst.LOGIN_USER_KEY);
+        User user = (User) request.getAttribute(WebConst.LOGIN_USER_KEY);
         return user;
     }
 
