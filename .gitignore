@@ -31,9 +31,5 @@ out/
 ### VS Code ###
 .vscode/
 /gradle/
-src/main/java/com/cjh/note_blog/Index/admin/
-src/main/java/com/cjh/note_blog/Index/user/service/
-src/main/java/com/cjh/note_blog/Tag/controller/
-src/main/resources/static/
 src/main/resources/templates/
 !/gradle/

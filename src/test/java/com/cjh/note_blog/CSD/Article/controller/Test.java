@@ -23,7 +23,7 @@ public class Test {
     IArticleService articleService;
 
     public void test(){
-        Result result = articleService.getArticleById(1);
+        Result result = articleService.getArticleByArtName("1");
         System.out.println(GsonUtils.toJsonString(result.getData()));
     }
 }

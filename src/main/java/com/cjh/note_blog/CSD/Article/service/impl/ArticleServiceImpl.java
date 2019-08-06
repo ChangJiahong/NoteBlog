@@ -50,7 +50,7 @@ public class ArticleServiceImpl implements IArticleService {
 
         criteria.andEqualTo(Table.Article.status.name(), Article.PUBLISH);
 
-        List<Article> articles = articleMapper.selectByExample(example);
+        List<Article> articles = articleMapper.selectArticles();
 
         if (articles.isEmpty()){
             // error: 没有找到
@@ -136,8 +136,9 @@ public class ArticleServiceImpl implements IArticleService {
 
         article.setStatus(Article.PUBLISH);
 
-        article = articleMapper.selectOne(article);
+//        article = articleMapper.selectOne(article);
 
+        article = articleMapper.selectByArtName(artName, StringUtils.isNumeric(artName));
         if (article == null){
             // error: 未找到
             return Result.fail(StatusCode.DataNotFound);
