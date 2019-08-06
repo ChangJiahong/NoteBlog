@@ -63,7 +63,7 @@ public class ArticleServiceImpl implements IArticleService {
      * 满足文章id不为空
      * @param article
      */
-    Result modifyArticle(Article article) {
+    private Result modifyArticle(Article article) {
         if (article.getId() == null){
             // error: 参数缺失， 文章id不为空
             return Result.fail(StatusCode.ParametersAreMissing);
@@ -101,7 +101,7 @@ public class ArticleServiceImpl implements IArticleService {
      * 创建文章
      * @param article
      */
-    Result createArticle(Article article) {
+    private Result createArticle(Article article) {
         Result result = null;
         result = checkParams(article);
         if (!result.isSuccess()){
@@ -139,7 +139,7 @@ public class ArticleServiceImpl implements IArticleService {
      * @return result data type: Acticle
      */
     @Override
-    public Result getArticleById(Integer id) {
+    public Result<Article> getArticleById(Integer id) {
 
         if (id == null){
             // error: 参数为空

@@ -1,11 +1,16 @@
 package com.cjh.note_blog.pojo.DO;
 
+import com.cjh.note_blog.annotations.Contains;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 /**
  * 数据对象
@@ -21,16 +26,23 @@ public class User implements Serializable {
     /**
      * 用户名
      */
+    @NotBlank(message = "用户名不能为空")
+    @Size(min = 3, max = 25, message = "用户名长度在3~25字符之间")
     private String username;
 
     /**
      * 邮箱账号
      */
+    @NotBlank(message = "邮箱不能为空")
+    @Email(message = "邮箱格式不正确")
+    @Size(max = 100, message = "邮箱长度太长")
     private String email;
 
     /**
      * 密码
      */
+    @NotBlank(message = "密码不能为空")
+    @Size(min = 6, max = 36, message = "密码长度在6~36之间")
     private String password;
 
     /**
@@ -47,7 +59,8 @@ public class User implements Serializable {
     /**
      * 年龄
      */
-    private Byte age;
+    @Max(value = 120, message = "年龄不超过120")
+    private Integer age;
 
     /**
      * 创建时间
@@ -172,7 +185,7 @@ public class User implements Serializable {
      *
      * @return age - 年龄
      */
-    public Byte getAge() {
+    public Integer getAge() {
         return age;
     }
 
@@ -181,7 +194,7 @@ public class User implements Serializable {
      *
      * @param age 年龄
      */
-    public void setAge(Byte age) {
+    public void setAge(Integer age) {
         this.age = age;
     }
 

@@ -10,12 +10,16 @@ import com.cjh.note_blog.pojo.DO.Role;
 import com.cjh.note_blog.pojo.DO.User;
 import com.cjh.note_blog.pojo.VO.RestResponse;
 import com.cjh.note_blog.CSD.Article.service.IArticleService;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 /**
  * ：
@@ -41,14 +45,14 @@ public class ArticleController extends BaseController {
      * @return
      */
     @PostMapping
-    public RestResponse publish(@RequestBody Article article, HttpServletRequest request){
+    public RestResponse publish(@Valid @RequestBody Article article, Errors errors, HttpServletRequest request){
 
         User user  = getUser(request);
 
-        if (article == null){
+        if (errors.hasErrors()){
             LOGGER.info("文章参数错误！");
             // error: 文章参数为空
-            return RestResponse.fail(StatusCode.ParameterIsNull);
+            return RestResponse.fail(StatusCode.ParameterVerificationError, errors.getFieldError().getDefaultMessage());
         }
 
         // 设置作者id
@@ -68,19 +72,34 @@ public class ArticleController extends BaseController {
 
     /**
      * 根据文章id获取文章信息
-     * @param id
+     * @param artName
      * @param request
      * @return
      */
-    @GetMapping("/{id}")
-    public RestResponse getArticleById(@PathVariable Integer id, HttpServletRequest request){
+    @GetMapping("/{artName}")
+    public RestResponse getArticle(@PathVariable String artName, HttpServletRequest request){
 
-        Result result = articleService.getArticleById(id);
-        if (!result.isSuccess()){
-            return RestResponse.fail(result);
+        if (StringUtils.isNumeric(artName)){
+            Integer id = Integer.valueOf(artName);
+
+            Result<Article> result = articleService.getArticleById(id);
+            if (!result.isSuccess()){
+                return RestResponse.fail(result);
+            }
+            // 请求成功，返回文章信息
+            return RestResponse.ok(result);
         }
-        // 请求成功，返回文章信息
-        return RestResponse.ok(result);
+
+        // TODO: 别名访问
+        return RestResponse.ok(artName+" 尚未开发");
+    }
+
+
+    @DeleteMapping("/{id}")
+    public RestResponse delArticleById(@PathVariable Integer id, HttpServletRequest request){
+
+
+        return RestResponse.fail();
     }
 
 }

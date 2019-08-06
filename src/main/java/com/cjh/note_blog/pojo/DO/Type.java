@@ -1,13 +1,17 @@
 package com.cjh.note_blog.pojo.DO;
 
+import com.cjh.note_blog.annotations.Contains;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 /**
  * 数据对象
- * ：标签 表
+ * ：分类标签 表
  */
 public class Type implements Serializable {
 
@@ -30,11 +34,15 @@ public class Type implements Serializable {
     /**
      * 名字
      */
+    @NotBlank(message = "分类标签名不能为空")
+    @Size(min = 1, max = 10, message = "分类标签名称长度在1~10字符之间")
     private String name;
 
     /**
      * 类型
      */
+    @NotBlank(message = "分类标签type不能为空")
+    @Contains(target = {Type.TAG, Type.CATEGORY})
     private String type;
 
     /**

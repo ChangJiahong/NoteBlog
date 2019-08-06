@@ -23,5 +23,5 @@ public interface IArticleService {
      * @param id
      * @return result data type: Acticle
      */
-    public Result getArticleById(Integer id);
+    public Result<Article> getArticleById(Integer id);
 }

@@ -4,6 +4,10 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.*;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  * 数据对象
@@ -19,6 +23,8 @@ public class Article implements Serializable {
     /**
      * 文章标题
      */
+    @NotBlank(message = "文章标题不为空")
+    @Size(min = 3, max = 50, message = "文章标题长度在3~50字符之间")
     private String title;
 
     /**
@@ -30,6 +36,7 @@ public class Article implements Serializable {
     /**
      * 文章标签、种类
      */
+    @Valid
     private List<Type> types;
 
     /**
@@ -60,6 +67,7 @@ public class Article implements Serializable {
     /**
      * 文章内容
      */
+    @NotBlank(message = "文章内容不能为空")
     private String content;
 
     private static final long serialVersionUID = 1L;

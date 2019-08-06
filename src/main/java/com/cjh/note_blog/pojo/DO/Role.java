@@ -1,8 +1,11 @@
 package com.cjh.note_blog.pojo.DO;
 
+import com.cjh.note_blog.annotations.Contains;
+
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 
 /**
  * 数据对象
@@ -35,6 +38,8 @@ public class Role implements Serializable {
     /**
      * 角色名
      */
+    @NotBlank(message = "角色名不能为空")
+    @Contains(target = {Role.USER, Role.ADMIN, Role.SUPER_ADMIN})
     private String rname;
 
     /**

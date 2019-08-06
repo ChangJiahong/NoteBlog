@@ -50,7 +50,7 @@ public class AccountController extends BaseController {
      */
     @PassToken
     @PostMapping("/login")
-    public RestResponse doLogin(@NotBlank(message = "用户名不能为空")
+    public RestResponse doLogin(@NotBlank(message = "name不能为空")
                                 @Size(min = 3, message = "用户名或邮箱长度最少为3个字符")
                                 @RequestParam String name,
                                 @NotBlank(message = "密码不能为空")
@@ -114,6 +114,13 @@ public class AccountController extends BaseController {
     }
 
 
+    /**
+     * 注册
+     * @param request
+     * @param response
+     * @param user
+     * @return
+     */
     @PostMapping("/register")
     public RestResponse register(HttpServletRequest request, HttpServletResponse response,
                                  @RequestBody User user){
