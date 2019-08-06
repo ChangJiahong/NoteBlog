@@ -5,23 +5,24 @@
     <!--
       WARNING - @mbg.generated
     -->
-    <id column="aid" property="id" jdbcType="INTEGER" />
-    <result column="title" property="title" jdbcType="VARCHAR" />
-    <result column="author_id" property="authorId" jdbcType="INTEGER" />
-    <result column="info" property="info" jdbcType="VARCHAR" />
-    <result column="hits" property="hits" jdbcType="INTEGER" />
-    <result column="modified" property="modified" jdbcType="TIMESTAMP" />
-    <result column="created" property="created" jdbcType="TIMESTAMP" />
-    <result column="status" property="status" jdbcType="CHAR" />
-    <result column="content" property="content" jdbcType="LONGVARCHAR" />
+      <id column="aid" property="id" jdbcType="INTEGER" />
+      <result column="title" property="title" jdbcType="VARCHAR" />
+      <result column="alias" property="alias" jdbcType="VARCHAR" />
+      <result column="author_id" property="authorId" jdbcType="INTEGER" />
+      <result column="info" property="info" jdbcType="VARCHAR" />
+      <result column="hits" property="hits" jdbcType="INTEGER" />
+      <result column="modified" property="modified" jdbcType="TIMESTAMP" />
+      <result column="created" property="created" jdbcType="TIMESTAMP" />
+      <result column="status" property="status" jdbcType="CHAR" />
+      <result column="content" property="content" jdbcType="LONGVARCHAR" />
 
 
-    <collection property="types" ofType="Type" >
-      <id property="id" column="tagId" jdbcType="INTEGER" />
-      <result property="name" column="tName" />
-      <result property="type" column="tType" />
-      <result property="created" column="tCreated" />
-    </collection>
+      <collection property="types" ofType="Type" >
+          <id property="id" column="tagId" jdbcType="INTEGER" />
+          <result property="name" column="tName" />
+          <result property="type" column="tType" />
+          <result property="created" column="tCreated" />
+      </collection>
 
 <!--    <collection property="categorys" ofType="Type" >-->
 <!--      <id property="id" column="categoryId" jdbcType="INTEGER" />-->

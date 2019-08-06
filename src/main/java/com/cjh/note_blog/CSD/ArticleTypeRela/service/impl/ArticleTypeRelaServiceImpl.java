@@ -46,7 +46,8 @@ public class ArticleTypeRelaServiceImpl implements IArticleTypeRelaService {
         articleType.setCreated(now);
         int i = articleTypeMapper.insertSelective(articleType);
         if (i <= 0){
-            throw new ExecutionDatabaseExcepeion("创建ArticleType失败");
+            return Result.fail(StatusCode.ExecutionDatabaseError,
+                    "创建ArticleType失败");
         }
         return Result.ok(articleType);
     }
@@ -165,7 +166,8 @@ public class ArticleTypeRelaServiceImpl implements IArticleTypeRelaService {
     public Result<ArticleType> delete(Integer aid, Integer tid) {
 
         if (aid == null || tid == null){
-            return Result.fail(StatusCode.ParameterIsNull, "删除ArticleType参数aid, tid不能为空");
+            return Result.fail(StatusCode.ParameterIsNull,
+                    "删除ArticleType参数aid, tid不能为空");
         }
 
         ArticleType articleType = new ArticleType();
@@ -176,7 +178,7 @@ public class ArticleTypeRelaServiceImpl implements IArticleTypeRelaService {
 
         int i = articleTypeMapper.delete(articleType);
         if (i <= 0){
-            throw new ExecutionDatabaseExcepeion(
+            return Result.fail(StatusCode.ExecutionDatabaseError,
                     "执行删除ArticleType失败，aid="+aid+",tid="+tid);
         }
         return Result.ok(articleType);

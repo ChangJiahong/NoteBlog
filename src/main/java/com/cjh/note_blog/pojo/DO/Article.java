@@ -1,5 +1,7 @@
 package com.cjh.note_blog.pojo.DO;
 
+import com.cjh.note_blog.annotations.Contains;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -7,6 +9,7 @@ import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 /**
@@ -14,6 +17,12 @@ import javax.validation.constraints.Size;
  * ：文章表
  */
 public class Article implements Serializable {
+
+    public static final String PUBLISH = "publish";
+
+    public static final String DRAFT = "draft";
+
+
     /**
      * 文章id
      */
@@ -26,6 +35,13 @@ public class Article implements Serializable {
     @NotBlank(message = "文章标题不为空")
     @Size(min = 3, max = 50, message = "文章标题长度在3~50字符之间")
     private String title;
+
+    /**
+     * 文章别名
+     */
+    @Size(min = 1, max = 25, message = "文章别名在1~25字符之间")
+    @Pattern(regexp = "^[A-Za-z]+$", message = "文章别名只能包含字母")
+    private String alias;
 
     /**
      * 作者id
@@ -62,6 +78,8 @@ public class Article implements Serializable {
     /**
      * 文章状态
      */
+    @NotBlank(message = "文章状态不为空")
+    @Contains(target = {Article.PUBLISH, Article.DRAFT}, message = "文章status只包含publish, draft")
     private String status;
 
     /**
@@ -106,6 +124,22 @@ public class Article implements Serializable {
      */
     public void setTitle(String title) {
         this.title = title == null ? null : title.trim();
+    }
+
+    /**
+     * 获取文章别名
+     * @return
+     */
+    public String getAlias() {
+        return alias;
+    }
+
+    /**
+     * 设置文章别名
+     * @param alias
+     */
+    public void setAlias(String alias) {
+        this.alias = alias;
     }
 
     /**

@@ -56,4 +56,60 @@ public class Table {
          */
         type
     }
+
+    public enum Article {
+        /**
+         * 文章id
+         */
+        id,
+
+        /**
+         * 文章标题
+         */
+        title,
+
+        /**
+         * 文章别名
+         */
+        alias,
+
+        /**
+         * 作者id
+         */
+        author_id,
+
+        /**
+         * 文章标签、种类
+         */
+        types,
+
+        /**
+         * 描述信息
+         */
+        info,
+
+        /**
+         * 点击数
+         */
+        hits,
+
+        /**
+         * 最近修改时间
+         */
+        modified,
+
+        /**
+         * 文章状态
+         */
+        status,
+
+        /**
+         * 文章内容
+         */
+        content,
+        /**
+         * 创建时间
+         */
+        created
+    }
 }
