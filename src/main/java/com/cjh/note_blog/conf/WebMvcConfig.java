@@ -1,5 +1,6 @@
-package com.cjh.note_blog.handler;
+package com.cjh.note_blog.conf;
 
+import com.cjh.note_blog.handler.BaseInterceptor;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -20,7 +21,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(baseInterceptor);
+        registry.addInterceptor(baseInterceptor)
+                // 排除路径
+                .excludePathPatterns("/error/**","/swagger-resources/**");
     }
 
     @Override

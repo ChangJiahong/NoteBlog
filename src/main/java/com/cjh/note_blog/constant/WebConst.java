@@ -8,6 +8,9 @@ package com.cjh.note_blog.constant;
  */
 public class WebConst {
 
+    /**
+     * 登录用户
+     */
     public static final String LOGIN_USER_KEY = "login_user" ;
 
     /**

@@ -57,5 +57,10 @@ public interface ICacheService {
      */
     void putUserToCache(String email, User user);
 
-
+    /**
+     *  将用户信息从缓存中移除
+     * @param email 用户邮箱
+     * @return 用户信息
+     */
+    User removeUserFromCache(String email);
 }

@@ -2,13 +2,19 @@ package com.cjh.note_blog.CSD.Account.controller;
 
 import com.cjh.note_blog.CSD.Account.service.IAccountService;
 import com.cjh.note_blog.annotations.PassToken;
+import com.cjh.note_blog.annotations.UserLoginToken;
 import com.cjh.note_blog.constant.StatusCode;
 import com.cjh.note_blog.constant.WebConst;
 import com.cjh.note_blog.controller.BaseController;
 import com.cjh.note_blog.pojo.BO.Result;
+import com.cjh.note_blog.pojo.DO.Role;
 import com.cjh.note_blog.pojo.DO.User;
 import com.cjh.note_blog.pojo.VO.RestResponse;
 import com.cjh.note_blog.utils.TokenUtil;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +32,7 @@ import javax.validation.constraints.Size;
  * @author ChangJiahong
  * @date 2019/7/16
  */
-
+@Api( tags = "登录/注销/注册接口")
 @Validated
 @RestController
 @RequestMapping
@@ -48,6 +54,11 @@ public class AccountController extends BaseController {
      * @param response
      * @return
      */
+    @ApiOperation(value = "登录", notes = "用户登录通过用户名或email")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "name", value = "用户名或email", dataType = "string", paramType = "form"),
+            @ApiImplicitParam(name = "password", value = "用户密码", dataType = "string", paramType = "form")
+    })
     @PassToken
     @PostMapping("/login")
     public RestResponse doLogin(@NotBlank(message = "name不能为空")
@@ -99,12 +110,18 @@ public class AccountController extends BaseController {
      * @param response
      * @return
      */
-    @PassToken
+    @ApiOperation(value = "注销", notes = "用户登出")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "token", value = "身份令牌", dataType = "string", paramType = "header")
+    })
+    @UserLoginToken
     @PostMapping("/logout")
     public RestResponse logout(HttpServletRequest request, HttpServletResponse response){
         User user = getUser(request);
         if (user != null){
-            request.getSession().removeAttribute(WebConst.LOGIN_USER_KEY);
+            request.removeAttribute(WebConst.LOGIN_USER_KEY);
+            // 从缓存移除用户信息
+            webCacheService.removeUserFromCache(user.getEmail());
             LOGGER.info("["+user.getEmail()+"]: logout of success！");
             // 注销成功
             return RestResponse.ok(StatusCode.LogoutOfSuccess);
@@ -115,12 +132,18 @@ public class AccountController extends BaseController {
 
 
     /**
-     * 注册
+     * 注册 管理员以上级别用户才能注册账户
      * @param request
      * @param response
      * @param user
      * @return
      */
+    @ApiOperation(value = "注册", notes = "用户注册，管理员以上级别用户才能注册账户")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "token", value = "身份令牌", dataType = "string", paramType = "header"),
+            @ApiImplicitParam(name = "user", value = "用户实体", dataType = "User", paramType = "body")
+    })
+    @UserLoginToken(Role.ADMIN)
     @PostMapping("/register")
     public RestResponse register(HttpServletRequest request, HttpServletResponse response,
                                  @RequestBody User user){

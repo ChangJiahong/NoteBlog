@@ -7,12 +7,11 @@ import com.cjh.note_blog.constant.WebConst;
 import com.cjh.note_blog.controller.BaseController;
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.Article;
-import com.cjh.note_blog.pojo.DO.Role;
 import com.cjh.note_blog.pojo.DO.User;
 import com.cjh.note_blog.pojo.VO.RestResponse;
 import com.cjh.note_blog.CSD.Article.service.IArticleService;
 import com.github.pagehelper.PageInfo;
-import org.apache.commons.lang3.StringUtils;
+import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +20,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
 
 /**
  * ：
@@ -31,7 +27,7 @@ import javax.validation.constraints.NotNull;
  * @author ChangJiahong
  * @date 2019/7/17
  */
-
+@Api(tags = "文章管理接口")
 @RestController
 @RequestMapping("/api/article")
 @UserLoginToken
@@ -48,6 +44,11 @@ public class ArticleController extends BaseController {
      * @param size 大小
      * @return
      */
+    @ApiOperation(value="获取文章集合", notes="获取文章集合")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "页码", defaultValue = "1", dataType = "int", paramType = "query"),
+            @ApiImplicitParam(name = "size", value = "单页大小", defaultValue = "20", dataType = "int", paramType = "query")
+    })
     @PassToken
     @GetMapping({"","/"})
     public RestResponse getArticles(@RequestParam(required = false, defaultValue = "1")
@@ -75,6 +76,10 @@ public class ArticleController extends BaseController {
      * @param request
      * @return
      */
+    @ApiOperation(value="获取单个文章", notes="获取单个文章详细内容")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "artName", value = "文章id或者别名", dataType = "string", paramType = "path"),
+     })
     @PassToken
     @GetMapping("/{artName}")
     public RestResponse getArticle(@PathVariable String artName, HttpServletRequest request){
@@ -93,6 +98,11 @@ public class ArticleController extends BaseController {
      * @param request
      * @return
      */
+    @ApiOperation(value="发布/保存文章", notes="发布或保存文章，如果有id则保存，没有则新建")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "token", value = "身份令牌", dataType = "string", paramType = "header"),
+            @ApiImplicitParam(name = "article", value = "文章实体", dataType = "Article", paramType = "body")
+    })
     @PostMapping({"","/"})
     public RestResponse publish(@Valid @RequestBody Article article, Errors errors, HttpServletRequest request){
 
@@ -125,6 +135,11 @@ public class ArticleController extends BaseController {
      * @param request
      * @return
      */
+    @ApiOperation(value="删除文章", notes="删除文章通过文章id")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "token", value = "身份令牌", dataType = "string", paramType = "header"),
+            @ApiImplicitParam(name = "id", value = "文章id", dataType = "int", paramType = "path")
+    })
     @DeleteMapping("/{id}")
     public RestResponse delArticleById(@PathVariable Integer id, HttpServletRequest request){
 

@@ -111,4 +111,18 @@ public class CacheServiceImpl implements ICacheService {
         cache.set(email, user);
     }
 
+    /**
+     * 将用户信息从缓存中移除
+     *
+     * @param email 用户邮箱
+     * @return 用户信息
+     */
+    @Override
+    public User removeUserFromCache(String email) {
+        User user = getUserFromCache(email);
+        if (null != user) {
+            cache.del(email);
+        }
+        return user;
+    }
 }

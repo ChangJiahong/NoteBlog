@@ -61,7 +61,7 @@ public class ArticleServiceImpl implements IArticleService {
             return Result.fail(StatusCode.DataNotFound);
         }
 
-        articles.stream().forEach(article -> {
+        articles.forEach(article -> {
             // 加上cache里的访问量
             int incrementHits = webCacheService.getHitsFromCache(article.getId());
             article.setHits(article.getHits()+incrementHits);

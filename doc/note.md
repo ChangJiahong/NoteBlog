@@ -18,3 +18,6 @@ CORS请求默认不发送Cookie和HTTP认证信息。如果要把Cookie发到服
 ```
 this.$axios.default.withCredentials = true
 ```
+
+# 另一种方案，采用令牌方式
+浏览器每次请求服务器都将token放在请求头中，服务器会自动取得请求头中的token对其进行身份验证
