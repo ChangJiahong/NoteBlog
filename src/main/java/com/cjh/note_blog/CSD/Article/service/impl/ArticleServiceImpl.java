@@ -126,19 +126,8 @@ public class ArticleServiceImpl implements IArticleService {
             // error: 参数为空
             return Result.fail(StatusCode.ParameterIsNull);
         }
-        Article article = new Article();
-        if (StringUtils.isNumeric(artName)) {
-            Integer id = Integer.valueOf(artName);
-            article.setId(id);
-        }else {
-            article.setAlias(artName);
-        }
 
-        article.setStatus(Article.PUBLISH);
-
-//        article = articleMapper.selectOne(article);
-
-        article = articleMapper.selectByArtName(artName, StringUtils.isNumeric(artName));
+        Article article = articleMapper.selectByArtName(artName, StringUtils.isNumeric(artName));
         if (article == null){
             // error: 未找到
             return Result.fail(StatusCode.DataNotFound);

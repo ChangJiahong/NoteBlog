@@ -9,11 +9,13 @@ import java.util.List;
 public interface ArticleMapper extends MyMapper<Article> {
 
     /**
-     * 查询
-     * @param id
+     * 查询文章
+     * @param artName id 或 别名
+     * @param byId 如果是 true 则按照id查询
+     *             否则 按照别名查询
      * @return
      */
-    public Article selectByArtName(@Param(value = "artName") String id,
+    public Article selectByArtName(@Param(value = "artName") String artName,
                               @Param(value = "byId") Boolean byId);
 
     /**
