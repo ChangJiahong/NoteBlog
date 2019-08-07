@@ -1,6 +1,6 @@
 package com.cjh.note_blog.handler;
 
-import com.cjh.note_blog.CSD.Cache.service.ICache;
+import com.cjh.note_blog.CSD.Cache.service.ICacheService;
 import com.cjh.note_blog.annotations.PassToken;
 import com.cjh.note_blog.annotations.UserLoginToken;
 import com.cjh.note_blog.constant.StatusCode;
@@ -20,15 +20,12 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.management.relation.RoleList;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -44,7 +41,7 @@ public class BaseInterceptor implements HandlerInterceptor {
     private static final String USER_AGENT = "user-agent";
 
     @Autowired
-    private ICache cache ;
+    private ICacheService webCacheService;
 
     /**
      * 需要验证的权限
@@ -106,7 +103,7 @@ public class BaseInterceptor implements HandlerInterceptor {
             // 保存user
             String email = (String) result.getData();
             // 缓存获取 用户信息，没有则返回登录失效
-            User user = cache.get(email);
+            User user = webCacheService.getUserFromCache(email);
             if (user != null){
                 // 验证权限
                 boolean bingo = compareRole(user.getRoles(), requiredRole);

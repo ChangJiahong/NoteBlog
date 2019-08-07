@@ -1,6 +1,7 @@
-package com.cjh.note_blog.CSD.Cache.service.impl;
+package com.cjh.note_blog.CSD.Cache.dao.impl;
 
-import com.cjh.note_blog.CSD.Cache.service.ICache;
+import com.cjh.note_blog.CSD.Cache.dao.ICache;
+import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -13,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2019/7/19
  */
 
-@Service
+@Repository
 public class WebCache implements ICache {
 
 

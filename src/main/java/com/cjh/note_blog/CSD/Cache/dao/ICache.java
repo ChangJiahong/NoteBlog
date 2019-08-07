@@ -1,4 +1,4 @@
-package com.cjh.note_blog.CSD.Cache.service;
+package com.cjh.note_blog.CSD.Cache.dao;
 
 /**
  * ：
@@ -10,21 +10,21 @@ public interface ICache {
 
     /**
      * 获取缓存
-     * @param key
-     * @param <T>
-     * @return
+     * @param key 缓存key
+     * @param <T> 泛型，缓存value的类型
+     * @return 缓存value
      */
-    public <T> T get(String key);
+    <T> T get(String key);
 
     /**
      * 读取一个hash类型缓存
      *
      * @param key   缓存key
      * @param field 缓存field
-     * @param <T>
-     * @return
+     * @param <T> 泛型，缓存value的类型
+     * @return 缓存value
      */
-    public <T> T hget(String key, String field);
+    <T> T hget(String key, String field);
 
     /**
      * 设置一个缓存 永不过期
@@ -32,7 +32,7 @@ public interface ICache {
      * @param key   缓存key
      * @param value 缓存value
      */
-    public void set(String key, Object value) ;
+    void set(String key, Object value) ;
 
     /**
      * 设置一个缓存并带过期时间
@@ -41,7 +41,7 @@ public interface ICache {
      * @param value   缓存value
      * @param expired 过期时间，单位为秒
      */
-    public void set(String key, Object value, long expired);
+    void set(String key, Object value, long expired);
 
     /**
      * 设置一个hash缓存 永不过期
@@ -50,7 +50,7 @@ public interface ICache {
      * @param field 缓存field
      * @param value 缓存value
      */
-    public void hset(String key, String field, Object value);
+    void hset(String key, String field, Object value);
 
     /**
      * 设置一个hash缓存并带过期时间
@@ -60,30 +60,30 @@ public interface ICache {
      * @param value   缓存value
      * @param expired 过期时间，单位为秒
      */
-    public void hset(String key, String field, Object value, long expired);
+    void hset(String key, String field, Object value, long expired);
 
 
     /**
      * 检查key是否存在
-     * @param key
-     * @return
+     * @param key 缓存key
+     * @return 如果存在返回true，否则返回false
      */
-    public boolean containsKey(String key);
+    boolean containsKey(String key);
 
     /**
      * 检查hash缓存是否有该key
-     * @param key
-     * @param field
-     * @return
+     * @param key 缓存key
+     * @param field 缓存域
+     * @return 如果存在返回true，否则返回false
      */
-    public boolean hContainsKey(String key, String field);
+    boolean hContainsKey(String key, String field);
 
     /**
      * 根据key删除缓存
      *
      * @param key 缓存key
      */
-    public <T> T del(String key);
+    <T> T del(String key);
 
 
     /**
@@ -92,11 +92,11 @@ public interface ICache {
      * @param key   缓存key
      * @param field 缓存field
      */
-    public <T> T hdel(String key, String field);
+    <T> T hdel(String key, String field);
 
     /**
      * 清空缓存
      */
-    public void clean();
+    void clean();
 
 }

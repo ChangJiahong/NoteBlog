@@ -20,5 +20,13 @@ public class WebConst {
      */
     public static final Integer MAX_PAGE = 100;
 
+    /**
+     * 点击有效时间间隔
+     */
+    public static final Integer HITS_LIMIT_TIME = 60*60;
 
+    /**
+     * 点击次数超过多少更新到数据库
+     */
+    public static final int HIT_EXCEED = 5;
 }

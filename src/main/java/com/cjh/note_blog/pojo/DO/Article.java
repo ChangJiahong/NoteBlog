@@ -63,7 +63,7 @@ public class Article implements Serializable {
     /**
      * 点击数
      */
-    private Integer hits;
+    private Integer hits = 0;
 
     /**
      * 最近修改时间
@@ -128,7 +128,7 @@ public class Article implements Serializable {
 
     /**
      * 获取文章别名
-     * @return
+     * @return alias - 文章别名
      */
     public String getAlias() {
         return alias;
@@ -136,7 +136,7 @@ public class Article implements Serializable {
 
     /**
      * 设置文章别名
-     * @param alias
+     * @param alias 文章别名
      */
     public void setAlias(String alias) {
         this.alias = alias;
@@ -190,7 +190,7 @@ public class Article implements Serializable {
     /**
      * 设置点击次数
      *
-     * @param hits
+     * @param hits 访问量
      */
     public void setHits(Integer hits) {
         this.hits = hits;
@@ -270,7 +270,7 @@ public class Article implements Serializable {
 
     /**
      * 获取文章标签、种类
-     * @return
+     * @return type - 文章分类标签
      */
     public List<Type> getTypes() {
         return types;
@@ -278,7 +278,7 @@ public class Article implements Serializable {
 
     /**
      * 设置文章标签、种类
-     * @param types
+     * @param types - 文章分类标签
      */
     public void setTypes(List<Type> types) {
         this.types = types;

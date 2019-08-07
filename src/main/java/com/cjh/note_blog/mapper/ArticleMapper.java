@@ -13,14 +13,23 @@ public interface ArticleMapper extends MyMapper<Article> {
      * @param artName id 或 别名
      * @param byId 如果是 true 则按照id查询
      *             否则 按照别名查询
-     * @return
+     * @return 文章对象
      */
-    public Article selectByArtName(@Param(value = "artName") String artName,
+    Article selectByArtName(@Param(value = "artName") String artName,
                               @Param(value = "byId") Boolean byId);
 
     /**
      * 获取列表
-     * @return
+     * @return 文章集合
      */
-    public List<Article> selectArticles();
+    List<Article> selectArticles();
+
+    /**
+     * 更新文章访问量
+     * @param id 文章id
+     * @param increment 增量
+     * @return 数据库受影响行数
+     */
+    int incrementHits(@Param(value = "id") Integer id,
+                             @Param(value = "increment") Integer increment);
 }

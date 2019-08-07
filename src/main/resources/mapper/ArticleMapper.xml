@@ -47,16 +47,8 @@
                 a.alias = #{artName}
             </otherwise>
         </choose>
-        and a.status = 'publish'
+        and a.`status` = 'publish'
     </where>
-<!--    where  <choose>-->
-<!--              <when test="byId">-->
-<!--                  a.id = #{artName} and a.status = 'publish'-->
-<!--              </when>-->
-<!--              <otherwise>-->
-<!--                  a.alias = #{artName} and a.status = 'publish'-->
-<!--              </otherwise>-->
-<!--            </choose>-->
   </select>
 
     <select id="selectArticles" resultMap="BaseResultMap" parameterType="INTEGER">
@@ -75,4 +67,10 @@
 		ORDER BY created DESC
     </select>
 
+
+    <update id="incrementHits" >
+        UPDATE article
+        SET hits = hits + #{increment}
+        WHERE id = #{id}
+    </update>
 </mapper>

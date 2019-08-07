@@ -1,36 +1,34 @@
 package com.cjh.note_blog.utils;
 
-import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.crypto.spec.SecretKeySpec;
-import javax.xml.bind.DatatypeConverter;
-
 import com.cjh.note_blog.constant.StatusCode;
-import com.cjh.note_blog.handler.GlobalExceptionHandler;
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.SignatureException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * 令牌工具类
+ * @author ChangJiahong
+ * @date 2019/8/7
+ */
 @Component
 public class TokenUtil {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TokenUtil.class);
 
-	private static final String CLAIM_KEY_Email = "sub";
+	private static final String CLAIM_KEY_EMAIL = "sub";
 	private static final String CLAIM_KEY_ID = "id";
 	private static final String CLAIM_KEY_CREATED = "created";
 	private static final String CLAIM_KEY_ROLES = "roles";
@@ -38,13 +36,15 @@ public class TokenUtil {
 	/**
 	 * 秘钥
 	 * Base64加密后的秘钥//2327085154
+	 * //= "MjMyNzA4NTE1NA==";
 	 */
-	private static String secret ;//= "MjMyNzA4NTE1NA==";
+	private static String secret ;
 
 	/**
 	 * 有效期 ，过期时长，单位为秒,可以通过配置写入。
+	 * //= 7*24*60*60;
 	 */
-	private static int expiration ;//= 7*24*60*60;
+	private static int expiration ;
 
 	@Value("${jwt.token.secret:MjMyNzA4NTE1NA==}")
 	public void setSecret(String secret) {
@@ -59,10 +59,10 @@ public class TokenUtil {
 
 	/**
 	 * 获取Email
-	 * @param token
-	 * @return
+	 * @param token 令牌
+	 * @return 用户email
 	 */
-	public static String getEmailFromToken(String token) throws MalformedJwtException, ExpiredJwtException {
+	private static String getEmailFromToken(String token) throws MalformedJwtException, ExpiredJwtException {
 		String username;
 		try {
 			username =getClaimsFromToken(token).getSubject();
@@ -79,8 +79,8 @@ public class TokenUtil {
 
 	/**
 	 * 获取创建时间
-	 * @param token
-	 * @return
+	 * @param token 令牌
+	 * @return 创建时间
 	 */
 	private static Date getCreatedDateFromToken(String token) throws MalformedJwtException {
 		Date created;
@@ -98,8 +98,8 @@ public class TokenUtil {
 
 	/**
 	 * 获取参数表
-	 * @param token
-	 * @return
+	 * @param token 令牌
+	 * @return 参数map
 	 */
 	private static Claims getClaimsFromToken(String token) throws MalformedJwtException, ExpiredJwtException {
 		Claims claims;
@@ -121,7 +121,7 @@ public class TokenUtil {
 
 	/**
 	 * 生成有效期
-	 * @return
+	 * @return 有效期对象
 	 */
 	private static Date generateExpirationDate() {
 		return new Date(System.currentTimeMillis() + expiration * 1000);
@@ -130,12 +130,12 @@ public class TokenUtil {
 
 	/**
 	 * 生成token
-	 * @param userDetails
-	 * @return
+	 * @param userDetails 用户对象
+	 * @return 令牌
 	 */
 	public static String generateToken(User userDetails) {
 		Map<String, Object> claims = new HashMap<>(10);
-		claims.put(CLAIM_KEY_Email, userDetails.getEmail());
+		claims.put(CLAIM_KEY_EMAIL, userDetails.getEmail());
 		claims.put(CLAIM_KEY_CREATED, new Date());
 		claims.put(CLAIM_KEY_ID, userDetails.getUid());
 		claims.put(CLAIM_KEY_ROLES, userDetails.getRoles());
@@ -145,8 +145,8 @@ public class TokenUtil {
 
 	/**
 	 * 生成token
-	 * @param claims
-	 * @return
+	 * @param claims 参数map
+	 * @return 令牌
 	 */
 	private static String generateToken(Map<String, Object> claims) {
 		return Jwts.builder()
@@ -159,8 +159,8 @@ public class TokenUtil {
 
 	/**
 	 * 刷新token
-	 * @param token
-	 * @return
+	 * @param token 旧令牌
+	 * @return 新的令牌
 	 */
 	public static String refreshToken(String token) throws MalformedJwtException {
 		String refreshedToken;
@@ -179,9 +179,9 @@ public class TokenUtil {
 
 	/**
 	 * 检查token
-	 * 成功则返回 User
-	 * @param token
-	 * @return
+	 * 成功则返回 User Email
+	 * @param token 令牌
+	 * @return 统一返回对象，data: 用户邮箱
 	 */
 	public static Result checkToken(String token){
 		if (StringUtils.isBlank(token)){

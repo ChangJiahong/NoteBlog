@@ -66,7 +66,6 @@ public class RestResponse<T> {
     /**
      * 返回状态码 无数据
      * @param statusCode
-     * @param <T>
      * @return
      */
     public static RestResponse ok(StatusCode statusCode) {
@@ -120,7 +119,6 @@ public class RestResponse<T> {
     /**
      * [失败] 返回状态码 无数据
      * @param statusCode
-     * @param <T>
      * @return
      */
     public static RestResponse fail(StatusCode statusCode) {
@@ -179,7 +177,7 @@ public class RestResponse<T> {
         this.msg = msg;
     }
 
-    public Object getData() {
+    public T getData() {
         return data;
     }
 

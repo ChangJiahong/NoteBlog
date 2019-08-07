@@ -1,6 +1,7 @@
 package com.cjh.note_blog.controller;
 
-import com.cjh.note_blog.CSD.Cache.service.ICache;
+import com.cjh.note_blog.CSD.Cache.dao.ICache;
+import com.cjh.note_blog.CSD.Cache.service.ICacheService;
 import com.cjh.note_blog.constant.WebConst;
 import com.cjh.note_blog.pojo.DO.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +18,10 @@ public abstract class BaseController {
 
 
     @Autowired
-    public ICache cache ;
+    public ICacheService webCacheService;
 
-    public User getUser(HttpServletRequest request){
-        User user = (User) request.getAttribute(WebConst.LOGIN_USER_KEY);
-        return user;
+    protected User getUser(HttpServletRequest request){
+        return (User) request.getAttribute(WebConst.LOGIN_USER_KEY);
     }
 
 }

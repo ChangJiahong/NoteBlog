@@ -1,5 +1,6 @@
 package com.cjh.note_blog.CSD.Article.service.impl;
 
+import com.cjh.note_blog.CSD.Cache.service.ICacheService;
 import com.cjh.note_blog.constant.StatusCode;
 import com.cjh.note_blog.constant.Table;
 import com.cjh.note_blog.exc.ExecutionDatabaseExcepeion;
@@ -22,7 +23,7 @@ import java.util.List;
 
 /**
  * ：
- * 文章服务 【service】
+ * 文章服务 【dao】
  * @author ChangJiahong
  * @date 2019/7/17
  */
@@ -31,6 +32,9 @@ public class ArticleServiceImpl implements IArticleService {
 
     @Autowired
     private ArticleMapper articleMapper;
+
+    @Autowired
+    private ICacheService webCacheService;
 
 
     /**
@@ -57,9 +61,44 @@ public class ArticleServiceImpl implements IArticleService {
             return Result.fail(StatusCode.DataNotFound);
         }
 
+        articles.stream().forEach(article -> {
+            // 加上cache里的访问量
+            int incrementHits = webCacheService.getHitsFromCache(article.getId());
+            article.setHits(article.getHits()+incrementHits);
+        });
+
         PageInfo<Article> pageInfo = new PageInfo<>(articles);
 
         return Result.ok(pageInfo);
+    }
+
+    /**
+     * 根据文章id|alias获取已发布文章
+     *
+     * @param artName
+     * @return result data type: Acticle
+     */
+    @Override
+    public Result<Article> getArticleByArtName(String artName) {
+
+        if (artName == null){
+            // error: 参数为空
+            return Result.fail(StatusCode.ParameterIsNull);
+        }
+
+        Article article = articleMapper.selectByArtName(artName, StringUtils.isNumeric(artName));
+        if (article == null){
+            // error: 未找到
+            return Result.fail(StatusCode.DataNotFound);
+        }
+
+        // 获取缓存里的访问量
+        int hits = webCacheService.getHitsFromCache(article.getId());
+
+        // 加上cache里的访问量
+        article.setHits(article.getHits()+hits);
+
+        return Result.ok(article);
     }
 
     /**
@@ -91,8 +130,14 @@ public class ArticleServiceImpl implements IArticleService {
         article.setModified(now);
 
         // 描述信息
-        // TODO: 摘要文章前100字
-        article.setInfo("");
+        // REPAIR: 文章摘要
+        if (StringUtils.isBlank(article.getInfo())) {
+            if (article.getContent().length() > 100) {
+                article.setInfo(article.getContent().substring(0, 100) + "...");
+            } else {
+                article.setInfo(article.getContent());
+            }
+        }
 
         int re = 0;
 
@@ -101,7 +146,6 @@ public class ArticleServiceImpl implements IArticleService {
             re = articleMapper.insertUseGeneratedKeys(article);
         } else {
             re = articleMapper.updateByPrimaryKeySelective(article);
-
         }
 
         if (re <= 0){
@@ -114,28 +158,28 @@ public class ArticleServiceImpl implements IArticleService {
     }
 
     /**
-     * 根据文章id|alias获取已发布文章
+     * 更新文章访问量
      *
-     * @param artName
-     * @return result data type: Acticle
+     * @param id
+     * @param increment 访问量增量
+     * @return
      */
     @Override
-    public Result<Article> getArticleByArtName(String artName) {
-
-        if (artName == null){
-            // error: 参数为空
+    public Result updateHits(Integer id, int increment) {
+        if (id == null){
             return Result.fail(StatusCode.ParameterIsNull);
         }
 
-        Article article = articleMapper.selectByArtName(artName, StringUtils.isNumeric(artName));
-        if (article == null){
-            // error: 未找到
-            return Result.fail(StatusCode.DataNotFound);
+        increment = increment < 0 ? 0 : increment;
+
+        int i = articleMapper.incrementHits(id, increment);
+
+        if (i <= 0) {
+            return Result.fail(StatusCode.ExecutionDatabaseError, "更新文章访问量失败");
         }
 
-        return Result.ok(article);
+        return Result.ok();
     }
-
 
     /**
      * 删除文章 byId

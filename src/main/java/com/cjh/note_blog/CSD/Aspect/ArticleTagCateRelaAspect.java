@@ -42,8 +42,12 @@ public class ArticleTagCateRelaAspect {
      * 在文章提交完成后，对文章的分类标签进行关联
      * @param article
      */
-    @AfterReturning("performance(article)")
-    public void afterArticlePublish(Article article){
+    @AfterReturning(value = "performance(article)", returning = "result")
+    public void afterArticlePublish(Article article, Result result){
+
+        if (!result.isSuccess()){
+            return;
+        }
 
         // 分类标签管理
         List<Type> types = article.getTypes();
@@ -78,12 +82,12 @@ public class ArticleTagCateRelaAspect {
             }
 
             // 以前所有
-            Result<List<Type>> result = typeRelaService.selectByArticleId(article.getId());
-            if (!result.isSuccess()){
+            Result<List<Type>> resultType = typeRelaService.selectByArticleId(article.getId());
+            if (!resultType.isSuccess()){
 
-                throw new StatusCodeException(result.getStatusCode(), result.getMsg());
+                throw new StatusCodeException(resultType.getStatusCode(), resultType.getMsg());
             }
-            List<Type> oldTypes = result.getData();
+            List<Type> oldTypes = resultType.getData();
 
             List<Type> needDel = new ArrayList<>(oldTypes);
 

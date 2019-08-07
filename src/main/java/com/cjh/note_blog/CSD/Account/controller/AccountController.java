@@ -80,7 +80,7 @@ public class AccountController extends BaseController {
             // 保存token到请求头中，返回给客户端
             response.setHeader("Authorization", token);
             // 保存token到缓存中
-            cache.set(user.getEmail(), user);
+            webCacheService.putUserToCache(user.getEmail(), user);
 
             LOGGER.info("["+user.getEmail()+"]: Login successful!");
 
