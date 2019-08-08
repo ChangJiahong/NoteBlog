@@ -9,7 +9,6 @@ import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.parser.ParserEmulationProfile;
 import com.vladsch.flexmark.util.options.MutableDataSet;
-import com.youbenzi.mdtool.tool.MDTool;
 import org.junit.Test;
 
 import java.io.*;
@@ -66,8 +65,8 @@ public class MdTest {
         for (String s : list){
             content.append(s+"\n");
         }
-        String html = MDTool.markdown2Html(content.toString());
-        System.out.println(html);
+//        String html = MDTool.markdown2Html(content.toString());
+//        System.out.println(html);
     }
 
     @Test

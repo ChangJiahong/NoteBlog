@@ -4,6 +4,8 @@ import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.Article;
 import com.github.pagehelper.PageInfo;
 
+import java.util.List;
+
 /**
  * ：
  * 文章服务 【dao】 【接口】
@@ -11,6 +13,18 @@ import com.github.pagehelper.PageInfo;
  * @date 2019/7/17
  */
 public interface IArticleService {
+
+    /**
+     * 获取文章集合
+     * 当分类为空时，默认查询全部
+     * @param type 分类标签
+     * @param typeName 分类标签名
+     * @param page 页码
+     * @param size 大小
+     * @return
+     */
+    Result<PageInfo<Article>> getArticles(String type, String typeName,
+                                          int page, int size);
 
     /**
      * 创建文章或修改文章
@@ -32,14 +46,6 @@ public interface IArticleService {
      * @return 统一返回对象
      */
     Result delArticleById(Integer id);
-
-    /**
-     * 获取文章列表
-     * @param page 页码
-     * @param size 每页大小
-     * @return 统一返回对象
-     */
-    Result<PageInfo<Article>> getArticles(Integer page, Integer size);
 
     /**
      * 更新文章访问量

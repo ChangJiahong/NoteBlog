@@ -3,7 +3,6 @@ package com.cjh.note_blog.CSD.Article.controller;
 import com.cjh.note_blog.annotations.PassToken;
 import com.cjh.note_blog.annotations.UserLoginToken;
 import com.cjh.note_blog.constant.StatusCode;
-import com.cjh.note_blog.constant.WebConst;
 import com.cjh.note_blog.controller.BaseController;
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.Article;
@@ -39,36 +38,41 @@ public class ArticleController extends BaseController {
     private IArticleService articleService ;
 
     /**
-     * 获取文章列表
+     * 获取文章集合
+     * 当分类为空时，默认查询全部
+     *
+     * @param typeName - 分类标签
+     * @param type - tag or category ; 是分类还是标签
      * @param page 页码
-     * @param size 大小
-     * @return
+     * @param size 单页大小
+     * @return 统一返回对象
      */
-    @ApiOperation(value="获取文章集合", notes="获取文章集合")
+    @ApiOperation(value = "获取文章集合", notes = "获取文章集合, 可根据分类标签获取(tag or category.)。\n当分类为空时，默认查询全部")
     @ApiImplicitParams({
+            @ApiImplicitParam(name = "type", value = "分类, 只接受'tag' or 'category'", dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "typeName", value = "分类标签名", dataType = "string", paramType = "query"),
             @ApiImplicitParam(name = "page", value = "页码", defaultValue = "1", dataType = "int", paramType = "query"),
             @ApiImplicitParam(name = "size", value = "单页大小", defaultValue = "20", dataType = "int", paramType = "query")
     })
     @PassToken
-    @GetMapping({"","/"})
-    public RestResponse getArticles(@RequestParam(required = false, defaultValue = "1")
-                                            Integer page,
-                                    @RequestParam(required = false, defaultValue = "20")
-                                            Integer size){
+    @GetMapping({"", "/"})
+    public RestResponse getArticles(@RequestParam(required = false)
+                                          String type,
+                                          @RequestParam(required = false)
+                                          String typeName,
+                                          @RequestParam(required = false, defaultValue = "1")
+                                          Integer page,
+                                          @RequestParam(required = false, defaultValue = "20")
+                                          Integer size) {
 
-        page = page < 0 || page > WebConst.MAX_PAGE ? 1 : page;
+        Result<PageInfo<Article>> listResult = articleService.getArticles(type, typeName, page, size);
 
-        size = size < 0 || size > WebConst.MAX_PAGESIZE ? 20 : size;
-
-        Result<PageInfo<Article>> result = articleService.getArticles(page, size);
-
-        if (!result.isSuccess()){
-            return RestResponse.fail(result);
+        if (!listResult.isSuccess()){
+            return RestResponse.fail(listResult);
         }
 
-        return RestResponse.ok(result);
+        return RestResponse.ok(listResult);
     }
-
 
     /**
      * 根据文章id|别名 获取文章信息

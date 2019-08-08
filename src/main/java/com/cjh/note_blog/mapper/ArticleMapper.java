@@ -19,12 +19,6 @@ public interface ArticleMapper extends MyMapper<Article> {
                               @Param(value = "byId") Boolean byId);
 
     /**
-     * 获取列表
-     * @return 文章集合
-     */
-    List<Article> selectArticles();
-
-    /**
      * 更新文章访问量
      * @param id 文章id
      * @param increment 增量
@@ -32,4 +26,14 @@ public interface ArticleMapper extends MyMapper<Article> {
      */
     int incrementHits(@Param(value = "id") Integer id,
                              @Param(value = "increment") Integer increment);
+
+    /**
+     * 获取列表
+     * 当分类为空时，默认查询全部
+     * @param type 分类, 可为空
+     * @param typeName 分类名， 可为空
+     * @return 返回根据分类查找的文章集合，如何分类为空，则默认返回全部
+     */
+    List<Article> selectArticles(@Param(value = "type") String type,
+                                 @Param(value = "typeName") String typeName);
 }

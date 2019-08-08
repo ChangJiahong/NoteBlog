@@ -1,32 +1,31 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.cjh.note_blog.mapper.ArticleMapper" >
-  <resultMap id="BaseResultMap" type="com.cjh.note_blog.pojo.DO.Article" >
-    <!--
-      WARNING - @mbg.generated
-    -->
-      <id column="aid" property="id" jdbcType="INTEGER" />
-      <result column="title" property="title" jdbcType="VARCHAR" />
-      <result column="alias" property="alias" jdbcType="VARCHAR" />
-      <result column="author_id" property="authorId" jdbcType="INTEGER" />
-      <result column="info" property="info" jdbcType="VARCHAR" />
-      <result column="hits" property="hits" jdbcType="INTEGER" />
-      <result column="modified" property="modified" jdbcType="TIMESTAMP" />
-      <result column="created" property="created" jdbcType="TIMESTAMP" />
-      <result column="status" property="status" jdbcType="CHAR" />
-      <result column="content" property="content" jdbcType="LONGVARCHAR" />
+    <resultMap id="BaseResultMap" type="com.cjh.note_blog.pojo.DO.Article" >
+        <!--
+          WARNING - @mbg.generated
+        -->
+          <id column="aid" property="id" jdbcType="INTEGER" />
+          <result column="title" property="title" jdbcType="VARCHAR" />
+          <result column="alias" property="alias" jdbcType="VARCHAR" />
+          <result column="author_id" property="authorId" jdbcType="INTEGER" />
+          <result column="info" property="info" jdbcType="VARCHAR" />
+          <result column="hits" property="hits" jdbcType="INTEGER" />
+          <result column="modified" property="modified" jdbcType="TIMESTAMP" />
+          <result column="created" property="created" jdbcType="TIMESTAMP" />
+          <result column="status" property="status" jdbcType="CHAR" />
+          <result column="content" property="content" jdbcType="LONGVARCHAR" />
 
 
-      <collection property="types" javaType="list"
-                  select="com.cjh.note_blog.mapper.TypeMapper.selectTypesByAid"
-                  column="aid"></collection>
+          <collection property="types" javaType="list"
+                      select="com.cjh.note_blog.mapper.TypeMapper.selectTypesByAid"
+                      column="aid"></collection>
 
 
-  </resultMap>
+    </resultMap>
 
-  <select id="selectByArtName" resultMap="BaseResultMap">
-    select
-        a.id aid,
+    <sql id="param">
+        DISTINCT a.id aid,
         a.title,
         a.alias,
         a.author_id,
@@ -36,37 +35,37 @@
         a.modified,
         a.created,
         a.`status`
+    </sql>
 
-    from article as a
-    <where>
-        <choose>
-            <when test="byId">
-                a.id = #{artName}
-            </when>
-            <otherwise>
-                a.alias = #{artName}
-            </otherwise>
-        </choose>
-        and a.`status` = 'publish'
-    </where>
-  </select>
-
-    <select id="selectArticles" resultMap="BaseResultMap" parameterType="INTEGER">
+    <select id="selectByArtName" resultMap="BaseResultMap">
         select
-            a.id aid,
-            a.title,
-            a.author_id,
-            a.info,
-            a.hits,
-            a.modified,
-            a.created,
-            a.`status`
-
+        <include refid="param"></include>
         from article as a
-        where a.`status` = 'publish'
-		ORDER BY created DESC
+        <where>
+            <choose>
+                <when test="byId">
+                    a.id = #{artName}
+                </when>
+                <otherwise>
+                    a.alias = #{artName}
+                </otherwise>
+            </choose>
+            and a.`status` = 'publish'
+        </where>
     </select>
 
+    <select id="selectArticles" resultMap="BaseResultMap" >
+        select
+            <include refid="param"></include>
+        from article as a
+        left join article_type ac on a.id = ac.aid
+        left join `type` t on ac.tid = t.id
+        where a.`status` = 'publish'
+            <if test="(type != null and type != '') and (typeName != null and typeName != '')">
+                and t.name = #{typeName} and t.type = #{type}
+            </if>
+        ORDER BY created DESC
+    </select>
 
     <update id="incrementHits" >
         UPDATE article

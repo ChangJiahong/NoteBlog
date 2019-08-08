@@ -2,7 +2,7 @@ package com.cjh.note_blog.CSD.Article.service.impl;
 
 import com.cjh.note_blog.CSD.Cache.service.ICacheService;
 import com.cjh.note_blog.constant.StatusCode;
-import com.cjh.note_blog.constant.Table;
+import com.cjh.note_blog.constant.WebConst;
 import com.cjh.note_blog.exc.ExecutionDatabaseExcepeion;
 import com.cjh.note_blog.exc.StatusCodeException;
 import com.cjh.note_blog.mapper.ArticleMapper;
@@ -16,7 +16,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tk.mybatis.mapper.entity.Example;
 
 import java.util.Date;
 import java.util.List;
@@ -36,39 +35,52 @@ public class ArticleServiceImpl implements IArticleService {
     @Autowired
     private ICacheService webCacheService;
 
-
     /**
-     * 获取文章列表
+     * 获取文章集合
+     * 当分类为空时，默认查询全部
      *
-     * @param page
-     * @param size
-     * @return
+     * @param type     分类标签
+     * @param typeName 分类标签名
+     * @param page     页码
+     * @param size     大小
+     * @return 统一返回对象
      */
     @Override
-    public Result<PageInfo<Article>> getArticles(Integer page, Integer size) {
+    public Result<PageInfo<Article>> getArticles(String type, String typeName,
+                                                 int page, int size) {
+//        if (StringUtils.isBlank(type) || StringUtils.isBlank(typeName)){
+//            return Result.fail(StatusCode.ParameterIsNull, "分类标签不能为空");
+//        }
+        page = page < 0 || page > WebConst.MAX_PAGE ? 1 : page;
+
+        size = size < 0 || size > WebConst.MAX_PAGESIZE ? 20 : size;
+
         PageHelper.startPage(page, size);
-        Example example = new Example(Article.class);
-        // 根据创建时间降序排列
-        example.orderBy(Table.Article.created.name()).desc();
-        Example.Criteria criteria = example.createCriteria();
 
-        criteria.andEqualTo(Table.Article.status.name(), Article.PUBLISH);
+        List<Article> articleList = articleMapper.selectArticles(type, typeName);
 
-        List<Article> articles = articleMapper.selectArticles();
+        return conversionArticles(articleList);
+    }
 
-        if (articles.isEmpty()){
-            // error: 没有找到
+    /**
+     * 转换文章集合
+     * 将文章集合转换成页面集合
+     * 统计总文章访问量 = （数据库+缓存） 文章访问量
+     * @param articleList 文章集合
+     * @return 页面集合
+     */
+    private Result<PageInfo<Article>> conversionArticles(List<Article> articleList) {
+        if (articleList.isEmpty()){
             return Result.fail(StatusCode.DataNotFound);
         }
 
-        articles.forEach(article -> {
+        articleList.forEach(article -> {
             // 加上cache里的访问量
             int incrementHits = webCacheService.getHitsFromCache(article.getId());
             article.setHits(article.getHits()+incrementHits);
         });
 
-        PageInfo<Article> pageInfo = new PageInfo<>(articles);
-
+        PageInfo<Article> pageInfo = new PageInfo<>(articleList);
         return Result.ok(pageInfo);
     }
 
@@ -81,7 +93,7 @@ public class ArticleServiceImpl implements IArticleService {
     @Override
     public Result<Article> getArticleByArtName(String artName) {
 
-        if (artName == null){
+        if (StringUtils.isBlank(artName)){
             // error: 参数为空
             return Result.fail(StatusCode.ParameterIsNull);
         }
