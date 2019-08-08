@@ -44,10 +44,10 @@ public class Article implements Serializable {
     private String alias;
 
     /**
-     * 作者id
+     * 作者
      */
-    @Column(name = "author_id")
-    private Integer authorId;
+    @Column(name = "author")
+    private String author;
 
     /**
      * 文章标签、种类
@@ -143,21 +143,21 @@ public class Article implements Serializable {
     }
 
     /**
-     * 获取作者id
+     * 获取作者
      *
-     * @return author_id - 作者id
+     * @return author - 作者
      */
-    public Integer getAuthorId() {
-        return authorId;
+    public String getAuthor() {
+        return author;
     }
 
     /**
-     * 设置作者id
+     * 设置作者
      *
-     * @param authorId 作者id
+     * @param author 作者
      */
-    public void setAuthorId(Integer authorId) {
-        this.authorId = authorId;
+    public void setAuthor(String author) {
+        this.author = author;
     }
 
     /**
@@ -289,7 +289,7 @@ public class Article implements Serializable {
         return "Article{" +
                 "id=" + id +
                 ", title='" + title + '\'' +
-                ", authorId=" + authorId +
+                ", author=" + author +
                 ", types=" + types +
                 ", info='" + info + '\'' +
                 ", hits=" + hits +

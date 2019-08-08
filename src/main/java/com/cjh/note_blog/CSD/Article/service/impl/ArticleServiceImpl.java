@@ -114,6 +114,36 @@ public class ArticleServiceImpl implements IArticleService {
     }
 
     /**
+     * 获得文章预览信息
+     *
+     * @param artName 文章id
+     * @param author  作者
+     * @return 统一返回对象
+     */
+    @Override
+    public Result<Article> getPreviewArticleByArtNameAndAuthor(String artName, String author) {
+        if (StringUtils.isBlank(artName) || StringUtils.isBlank(author)){
+            return Result.fail(StatusCode.ParameterIsNull);
+        }
+
+        Article article = articleMapper.selectByArtNameAndAuthor(artName, author,
+                StringUtils.isNumeric(artName));
+
+        if (article == null) {
+            // 没找到
+            return Result.fail(StatusCode.DataNotFound);
+        }
+
+        // 获取缓存里的访问量
+        int hits = webCacheService.getHitsFromCache(article.getId());
+
+        // 加上cache里的访问量
+        article.setHits(article.getHits()+hits);
+
+        return Result.ok(article);
+    }
+
+    /**
      * 创建文章或修改文章
      *
      * @param article
@@ -136,8 +166,7 @@ public class ArticleServiceImpl implements IArticleService {
         }
 
         Date now = DateUtils.getNow();
-        // 创建时间
-        article.setCreated(now);
+
         // 最近修改时间更新
         article.setModified(now);
 
@@ -154,9 +183,13 @@ public class ArticleServiceImpl implements IArticleService {
         int re = 0;
 
         if (article.getId() == null){
+            // 创建时间
+            article.setCreated(now);
             // 新建文章
             re = articleMapper.insertUseGeneratedKeys(article);
         } else {
+            // 不修改创建时间
+            article.setCreated(null);
             re = articleMapper.updateByPrimaryKeySelective(article);
         }
 

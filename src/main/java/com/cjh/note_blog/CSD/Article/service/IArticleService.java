@@ -54,4 +54,12 @@ public interface IArticleService {
      * @return 统一返回对象
      */
     Result updateHits(Integer id, int increment);
+
+    /**
+     * 获得文章预览信息
+     * @param artName 文章id
+     * @param author 作者
+     * @return 统一返回对象
+     */
+    Result<Article> getPreviewArticleByArtNameAndAuthor(String artName, String author);
 }

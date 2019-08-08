@@ -96,6 +96,23 @@ public class ArticleController extends BaseController {
         return RestResponse.ok(result);
     }
 
+    @ApiOperation(value="预览文章", notes="获取预览文章详细内容，需登录")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "token", value = "身份令牌", dataType = "string", paramType = "header"),
+            @ApiImplicitParam(name = "artName", value = "文章id或者别名", dataType = "string", paramType = "path"),
+    })
+    @GetMapping("/preview/{artName}")
+    public RestResponse preview(@PathVariable String artName, HttpServletRequest request){
+
+        User user = getUser(request);
+        String author = user.getUsername();
+        Result<Article> result = articleService.getPreviewArticleByArtNameAndAuthor(artName, author);
+        if (!result.isSuccess()) {
+            return RestResponse.fail(result);
+        }
+        return RestResponse.ok(result);
+    }
+
     /**
      * 发布文章|保存
      * @param article
@@ -118,8 +135,8 @@ public class ArticleController extends BaseController {
             return RestResponse.fail(StatusCode.ParameterVerificationError, errors.getFieldError().getDefaultMessage());
         }
 
-        // 设置作者id
-        article.setAuthorId(user.getUid());
+        // 设置作者id 作者username
+        article.setAuthor(user.getUsername());
 
         Result result = articleService.publish(article);
 

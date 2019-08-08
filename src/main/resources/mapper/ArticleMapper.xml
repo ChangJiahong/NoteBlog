@@ -8,7 +8,7 @@
           <id column="aid" property="id" jdbcType="INTEGER" />
           <result column="title" property="title" jdbcType="VARCHAR" />
           <result column="alias" property="alias" jdbcType="VARCHAR" />
-          <result column="author_id" property="authorId" jdbcType="INTEGER" />
+          <result column="author" property="author" jdbcType="VARCHAR" />
           <result column="info" property="info" jdbcType="VARCHAR" />
           <result column="hits" property="hits" jdbcType="INTEGER" />
           <result column="modified" property="modified" jdbcType="TIMESTAMP" />
@@ -24,11 +24,12 @@
 
     </resultMap>
 
+<!--    返回参数列表-->
     <sql id="param">
         DISTINCT a.id aid,
         a.title,
         a.alias,
-        a.author_id,
+        a.author,
         a.content,
         a.info,
         a.hits,
@@ -37,26 +38,44 @@
         a.`status`
     </sql>
 
+<!--    通过id查询-->
+    <sql id="byId">
+        <choose>
+            <when test="byId">
+                a.id = #{artName}
+            </when>
+            <otherwise>
+                a.alias = #{artName}
+            </otherwise>
+        </choose>
+    </sql>
+
+<!--    查询发布的文章通过id或者别名-->
     <select id="selectByArtName" resultMap="BaseResultMap">
         select
-        <include refid="param"></include>
+            <include refid="param" />
         from article as a
         <where>
-            <choose>
-                <when test="byId">
-                    a.id = #{artName}
-                </when>
-                <otherwise>
-                    a.alias = #{artName}
-                </otherwise>
-            </choose>
+            <include refid="byId" />
             and a.`status` = 'publish'
         </where>
     </select>
 
+<!--    查询文章通过id或者别名和作者-->
+    <select id="selectByArtNameAndAuthor" resultMap="BaseResultMap" >
+        select
+            <include refid="param" />
+        from article as a
+        <where>
+            <include refid="byId" />
+            and a.author = #{author}
+        </where>
+    </select>
+
+<!--    查询已发布的文章集合，可以选择分类标签条件-->
     <select id="selectArticles" resultMap="BaseResultMap" >
         select
-            <include refid="param"></include>
+            <include refid="param" />
         from article as a
         left join article_type ac on a.id = ac.aid
         left join `type` t on ac.tid = t.id
@@ -67,6 +86,7 @@
         ORDER BY created DESC
     </select>
 
+<!--    更新文章访问量，通过增量-->
     <update id="incrementHits" >
         UPDATE article
         SET hits = hits + #{increment}

@@ -36,4 +36,19 @@ public interface ArticleMapper extends MyMapper<Article> {
      */
     List<Article> selectArticles(@Param(value = "type") String type,
                                  @Param(value = "typeName") String typeName);
+
+    /**
+     * 查询文章
+     * @param artName 文章id
+     * @param author 作者
+     * @param byId 如果是 true 则按照id查询
+     *             否则 按照别名查询
+     * @return 文章对象
+     */
+    Article selectByArtNameAndAuthor(@Param(value = "artName")
+                                     String artName,
+                                     @Param(value = "author")
+                                     String author,
+                                     @Param(value = "byId")
+                                     Boolean byId);
 }

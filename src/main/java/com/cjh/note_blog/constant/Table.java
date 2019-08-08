@@ -76,7 +76,7 @@ public class Table {
         /**
          * 作者id
          */
-        author_id,
+        author,
 
         /**
          * 文章标签、种类

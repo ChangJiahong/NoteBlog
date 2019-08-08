@@ -1,6 +1,7 @@
 package com.cjh.note_blog.pojo.DO;
 
 import com.cjh.note_blog.annotations.Contains;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -57,6 +58,7 @@ public class Type implements Serializable {
      *
      * @return id - 自增主键
      */
+    @JsonIgnore
     public Integer getId() {
         return id;
     }
@@ -106,10 +108,19 @@ public class Type implements Serializable {
         this.type = type == null ? null : type.trim();
     }
 
+    /**
+     * 获取创建时间
+     * @return 创建时间
+     */
+    @JsonIgnore
     public Date getCreated() {
         return created;
     }
 
+    /**
+     * 设置创建时间
+     * @param created 创建时间
+     */
     public void setCreated(Date created) {
         this.created = created;
     }
