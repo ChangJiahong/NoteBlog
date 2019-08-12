@@ -203,6 +203,32 @@ public class ArticleServiceImpl implements IArticleService {
     }
 
     /**
+     * 修改文章状态
+     *
+     * @param id     文章id
+     * @param status 文章状态
+     * @return 统一返回对象
+     */
+    @Override
+    public Result updateStatus(Integer id, String status) {
+        if (id == null) {
+            return Result.fail(StatusCode.ParameterIsNull);
+        }
+        if (!(Article.PUBLISH.equals(status) || Article.DRAFT.equals(status))) {
+            return Result.fail(StatusCode.ParameterIsInvalid);
+        }
+
+        Article article = new Article();
+        article.setId(id);
+        article.setStatus(status);
+        int i = articleMapper.updateByPrimaryKeySelective(article);
+        if (i <= 0) {
+            return Result.fail(StatusCode.ExecutionDatabaseError, "修改文章状态失败");
+        }
+        return Result.ok();
+    }
+
+    /**
      * 更新文章访问量
      *
      * @param id

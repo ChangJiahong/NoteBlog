@@ -4,6 +4,7 @@ import javax.validation.Constraint;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import javax.validation.Payload;
+import javax.validation.constraints.NotBlank;
 import java.lang.annotation.*;
 
 /**
@@ -12,7 +13,7 @@ import java.lang.annotation.*;
  * @author ChangJiahong
  * @date 2019/8/6
  */
-@Target({ElementType.FIELD, ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+@Target({ElementType.FIELD, ElementType.METHOD,ElementType.PARAMETER,ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = {Contains.EnumValidtor.class})
 @Documented

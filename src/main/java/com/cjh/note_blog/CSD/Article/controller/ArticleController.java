@@ -1,5 +1,6 @@
 package com.cjh.note_blog.CSD.Article.controller;
 
+import com.cjh.note_blog.annotations.Contains;
 import com.cjh.note_blog.annotations.PassToken;
 import com.cjh.note_blog.annotations.UserLoginToken;
 import com.cjh.note_blog.constant.StatusCode;
@@ -15,10 +16,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.Errors;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 /**
  * ：
@@ -29,6 +33,7 @@ import javax.validation.Valid;
 @Api(tags = "文章管理接口")
 @RestController
 @RequestMapping("/api/article")
+@Validated
 @UserLoginToken
 public class ArticleController extends BaseController {
 
@@ -96,6 +101,12 @@ public class ArticleController extends BaseController {
         return RestResponse.ok(result);
     }
 
+    /**
+     * 预览文章
+     * @param artName 文章id|别名
+     * @param request 请求对象
+     * @return 统一返回对象
+     */
     @ApiOperation(value="预览文章", notes="获取预览文章详细内容，需登录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "token", value = "身份令牌", dataType = "string", paramType = "header"),
@@ -149,6 +160,32 @@ public class ArticleController extends BaseController {
 
     }
 
+
+    /**
+     * 文章状态管理
+     * @param id 文章id
+     * @param status 文章状态（publis|draft）
+     * @return 统一返回对象
+     */
+    @ApiOperation(value = "文章状态管理", notes = "更改文章状态（发布or草稿）")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "文章id", dataType = "string", paramType = "path"),
+            @ApiImplicitParam(name = "status", value = "状态(publish、draft)", dataType = "string", paramType = "path")
+    })
+    @PostMapping("/status/{id}/{status}")
+    public RestResponse articleEnable(@PathVariable(value = "id") Integer id,
+                                      @Contains(target = {Article.PUBLISH, Article.DRAFT},
+                                              message = "请求参数不正确")
+                                      @PathVariable(value = "status") String status) {
+
+        Result result = articleService.updateStatus(id, status);
+
+        if (!result.isSuccess()){
+            return RestResponse.fail(result);
+        }
+
+        return RestResponse.ok();
+    }
 
     /**
      * 删除文章
