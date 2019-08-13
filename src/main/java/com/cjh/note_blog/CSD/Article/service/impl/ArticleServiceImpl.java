@@ -2,6 +2,7 @@ package com.cjh.note_blog.CSD.Article.service.impl;
 
 import com.cjh.note_blog.CSD.Cache.service.ICacheService;
 import com.cjh.note_blog.constant.StatusCode;
+import com.cjh.note_blog.constant.Table;
 import com.cjh.note_blog.constant.WebConst;
 import com.cjh.note_blog.exc.ExecutionDatabaseExcepeion;
 import com.cjh.note_blog.exc.StatusCodeException;
@@ -16,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tk.mybatis.mapper.entity.Example;
 
 import java.util.Date;
 import java.util.List;
@@ -159,8 +161,14 @@ public class ArticleServiceImpl implements IArticleService {
 
         if (!StringUtils.isBlank(article.getAlias())){
             // 检查别名是否重复
-            Result result = getArticleByArtName(article.getAlias());
-            if (result.isSuccess()){
+            Example example = new Example(Article.class);
+            Example.Criteria criteria = example.createCriteria();
+            criteria.andEqualTo(Table.Article.alias.name(), article.getAlias());
+            if (article.getId() != null) {
+                criteria.andNotEqualTo(Table.Article.id.name(), article.getId());
+            }
+            int i = articleMapper.selectCountByExample(example);
+            if (i > 0){
                 return Result.fail(StatusCode.DataAlreadyExists,"该别名已存在！");
             }
         }
@@ -169,6 +177,9 @@ public class ArticleServiceImpl implements IArticleService {
 
         // 最近修改时间更新
         article.setModified(now);
+
+        // 不修改访问量
+        article.setHits(null);
 
         // 描述信息
         // REPAIR: 文章摘要

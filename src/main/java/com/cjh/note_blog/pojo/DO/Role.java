@@ -2,6 +2,7 @@ package com.cjh.note_blog.pojo.DO;
 
 import com.cjh.note_blog.annotations.Contains;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -46,6 +47,7 @@ public class Role implements Serializable {
     /**
      * 创建时间
      */
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonFormat(shape= JsonFormat.Shape.STRING,pattern="yyyy-MM-dd HH:mm:ss",timezone="GMT+8")
     private Date created;
 
