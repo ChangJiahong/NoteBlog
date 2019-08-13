@@ -19,6 +19,11 @@ public class WebConst {
     public static final Integer MAX_PAGESIZE = 40;
 
     /**
+     * 默认每页大小
+     */
+    public static final Integer DEFAULT_PAGESIZE = 12;
+
+    /**
      * 最大页数
      */
     public static final Integer MAX_PAGE = 100;

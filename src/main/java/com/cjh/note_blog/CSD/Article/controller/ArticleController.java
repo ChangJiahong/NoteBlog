@@ -4,6 +4,7 @@ import com.cjh.note_blog.annotations.Contains;
 import com.cjh.note_blog.annotations.PassToken;
 import com.cjh.note_blog.annotations.UserLoginToken;
 import com.cjh.note_blog.constant.StatusCode;
+import com.cjh.note_blog.constant.WebConst;
 import com.cjh.note_blog.controller.BaseController;
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.Article;
@@ -57,7 +58,7 @@ public class ArticleController extends BaseController {
             @ApiImplicitParam(name = "type", value = "分类, 只接受'tag' or 'category'", dataType = "string", paramType = "query"),
             @ApiImplicitParam(name = "typeName", value = "分类标签名", dataType = "string", paramType = "query"),
             @ApiImplicitParam(name = "page", value = "页码", defaultValue = "1", dataType = "int", paramType = "query"),
-            @ApiImplicitParam(name = "size", value = "单页大小", defaultValue = "20", dataType = "int", paramType = "query")
+            @ApiImplicitParam(name = "size", value = "单页大小", defaultValue = "12", dataType = "int", paramType = "query")
     })
     @PassToken
     @GetMapping({"", "/"})
@@ -67,7 +68,7 @@ public class ArticleController extends BaseController {
                                           String typeName,
                                           @RequestParam(required = false, defaultValue = "1")
                                           Integer page,
-                                          @RequestParam(required = false, defaultValue = "20")
+                                          @RequestParam(required = false, defaultValue = "12")
                                           Integer size) {
 
         Result<PageInfo<Article>> listResult = articleService.getArticles(type, typeName, page, size);

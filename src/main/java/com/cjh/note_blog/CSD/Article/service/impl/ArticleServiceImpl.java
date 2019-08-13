@@ -53,7 +53,7 @@ public class ArticleServiceImpl implements IArticleService {
 //        }
         page = page < 0 || page > WebConst.MAX_PAGE ? 1 : page;
 
-        size = size < 0 || size > WebConst.MAX_PAGESIZE ? 20 : size;
+        size = size < 0 || size > WebConst.MAX_PAGESIZE ? WebConst.DEFAULT_PAGESIZE : size;
 
         PageHelper.startPage(page, size);
 

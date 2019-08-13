@@ -1,6 +1,7 @@
 package com.cjh.note_blog.pojo.DO;
 
 import com.cjh.note_blog.annotations.Contains;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -68,11 +69,13 @@ public class Article implements Serializable {
     /**
      * 最近修改时间
      */
+    @JsonFormat(shape=JsonFormat.Shape.STRING,pattern="yyyy-MM-dd HH:mm:ss",timezone="GMT+8")
     private Date modified;
 
     /**
      * 创建时间
      */
+    @JsonFormat(shape=JsonFormat.Shape.STRING,pattern="yyyy-MM-dd HH:mm:ss",timezone="GMT+8")
     private Date created;
 
     /**

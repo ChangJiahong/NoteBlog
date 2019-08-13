@@ -1,5 +1,7 @@
 package com.cjh.note_blog.pojo.DO;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.*;
@@ -27,6 +29,7 @@ public class UserRole implements Serializable {
     /**
      * 创建时间
      */
+    @JsonFormat(shape= JsonFormat.Shape.STRING,pattern="yyyy-MM-dd HH:mm:ss",timezone="GMT+8")
     private Date created;
 
     private static final long serialVersionUID = 1L;
