@@ -10,6 +10,7 @@ import com.cjh.note_blog.mapper.ArticleMapper;
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.Article;
 import com.cjh.note_blog.CSD.Article.service.IArticleService;
+import com.cjh.note_blog.pojo.VO.ArchiveVO;
 import com.cjh.note_blog.utils.DateUtils;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -50,9 +51,7 @@ public class ArticleServiceImpl implements IArticleService {
     @Override
     public Result<PageInfo<Article>> getArticles(String type, String typeName,
                                                  int page, int size) {
-//        if (StringUtils.isBlank(type) || StringUtils.isBlank(typeName)){
-//            return Result.fail(StatusCode.ParameterIsNull, "分类标签不能为空");
-//        }
+
         page = page < 0 || page > WebConst.MAX_PAGE ? 1 : page;
 
         size = size < 0 || size > WebConst.MAX_PAGESIZE ? WebConst.DEFAULT_PAGESIZE : size;
@@ -60,8 +59,42 @@ public class ArticleServiceImpl implements IArticleService {
         PageHelper.startPage(page, size);
 
         List<Article> articleList = articleMapper.selectArticles(type, typeName);
+        if (null == articleList && articleList.isEmpty()){
+            return Result.fail(StatusCode.DataNotFound);
+        }
+        // 转换文章访问量
+        conversionArticles(articleList);
+        PageInfo<Article> pageInfo = new PageInfo<>(articleList);
+        return Result.ok(pageInfo);
+    }
 
-        return conversionArticles(articleList);
+    /**
+     * 获取所有文档归档
+     *
+     * @param page 页码
+     * @param size 大小
+     * @return 统一返回对象
+     */
+    @Override
+    public Result<PageInfo<ArchiveVO>> getArchives(Integer page, Integer size) {
+        page = page < 0 || page > WebConst.MAX_PAGE ? 1 : page;
+
+        size = size < 0 || size > WebConst.MAX_PAGESIZE ? WebConst.DEFAULT_PAGESIZE : size;
+
+        PageHelper.startPage(page, size);
+        List<ArchiveVO> archiveVOS = articleMapper.selectArchives();
+        if (null == archiveVOS && archiveVOS.isEmpty()){
+            // error: 没有找到
+            return Result.fail(StatusCode.DataNotFound);
+        }
+        archiveVOS.forEach(archiveVO -> {
+            List<Article> articles = articleMapper.selectArticleByDate(archiveVO.getDate());
+            // 转换文章访问量
+            conversionArticles(articles);
+            archiveVO.setArticles(articles);
+        });
+        PageInfo<ArchiveVO> pageInfo = new PageInfo<>(archiveVOS);
+        return Result.ok(pageInfo);
     }
 
     /**
@@ -69,21 +102,13 @@ public class ArticleServiceImpl implements IArticleService {
      * 将文章集合转换成页面集合
      * 统计总文章访问量 = （数据库+缓存） 文章访问量
      * @param articleList 文章集合
-     * @return 页面集合
      */
-    private Result<PageInfo<Article>> conversionArticles(List<Article> articleList) {
-        if (articleList.isEmpty()){
-            return Result.fail(StatusCode.DataNotFound);
-        }
-
+    private void conversionArticles(List<Article> articleList) {
         articleList.forEach(article -> {
             // 加上cache里的访问量
             int incrementHits = webCacheService.getHitsFromCache(article.getId());
             article.setHits(article.getHits()+incrementHits);
         });
-
-        PageInfo<Article> pageInfo = new PageInfo<>(articleList);
-        return Result.ok(pageInfo);
     }
 
     /**

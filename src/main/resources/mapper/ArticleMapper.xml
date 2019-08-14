@@ -30,7 +30,6 @@
         a.title,
         a.alias,
         a.author,
-        a.content,
         a.info,
         a.hits,
         a.modified,
@@ -53,7 +52,8 @@
 <!--    查询发布的文章通过id或者别名-->
     <select id="selectByArtName" resultMap="BaseResultMap">
         select
-            <include refid="param" />
+            <include refid="param" />,
+            a.content
         from article as a
         <where>
             <include refid="byId" />
@@ -64,7 +64,8 @@
 <!--    查询文章通过id或者别名和作者-->
     <select id="selectByArtNameAndAuthor" resultMap="BaseResultMap" >
         select
-            <include refid="param" />
+            <include refid="param" />,
+            a.content
         from article as a
         <where>
             <include refid="byId" />
@@ -78,7 +79,6 @@
             <include refid="param" />
         from article as a
         left join article_type ac on a.id = ac.aid
-        left join `type` t on ac.tid = t.id
         where a.`status` = 'publish'
             <if test="(type != null and type != '') and (typeName != null and typeName != '')">
                 and t.name = #{typeName} and t.type = #{type}
@@ -86,6 +86,31 @@
         ORDER BY created DESC
     </select>
 
+<!--    归档对象-->
+    <resultMap id="archiveVoMap" type="com.cjh.note_blog.pojo.VO.ArchiveVO">
+        <id column="date" property="date"/>
+        <result column="count" property="count"/>
+    </resultMap>
+
+<!--    查询归档-->
+    <select id="selectArchives" resultMap="archiveVoMap">
+        select DATE_FORMAT(created,'%Y%m') as date,
+               count(*) as count
+        from article
+        where status = 'publish'
+        group by date
+        order by date desc
+    </select>
+
+    <select id="selectArticleByDate" resultMap="BaseResultMap">
+        select
+            <include refid="param" />
+        from article as a
+        where status = 'publish'
+            and DATE_FORMAT(created,'%Y%m') = #{date}
+        group by created
+        order by created desc
+    </select>
 <!--    更新文章访问量，通过增量-->
     <update id="incrementHits" >
         UPDATE article

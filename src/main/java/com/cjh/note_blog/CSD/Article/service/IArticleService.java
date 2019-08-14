@@ -2,6 +2,7 @@ package com.cjh.note_blog.CSD.Article.service;
 
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.Article;
+import com.cjh.note_blog.pojo.VO.ArchiveVO;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -70,4 +71,12 @@ public interface IArticleService {
      * @return 统一返回对象
      */
     Result updateStatus(Integer id, String status);
+
+    /**
+     * 获取所有文档归档
+     * @param page 页码
+     * @param size 大小
+     * @return 统一返回对象
+     */
+    Result<PageInfo<ArchiveVO>> getArchives(Integer page, Integer size);
 }

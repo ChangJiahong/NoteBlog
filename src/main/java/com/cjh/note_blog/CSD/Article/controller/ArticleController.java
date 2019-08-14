@@ -4,11 +4,11 @@ import com.cjh.note_blog.annotations.Contains;
 import com.cjh.note_blog.annotations.PassToken;
 import com.cjh.note_blog.annotations.UserLoginToken;
 import com.cjh.note_blog.constant.StatusCode;
-import com.cjh.note_blog.constant.WebConst;
 import com.cjh.note_blog.controller.BaseController;
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.Article;
 import com.cjh.note_blog.pojo.DO.User;
+import com.cjh.note_blog.pojo.VO.ArchiveVO;
 import com.cjh.note_blog.pojo.VO.RestResponse;
 import com.cjh.note_blog.CSD.Article.service.IArticleService;
 import com.github.pagehelper.PageInfo;
@@ -22,8 +22,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
 
 /**
  * ：
@@ -102,6 +100,24 @@ public class ArticleController extends BaseController {
         return RestResponse.ok(result);
     }
 
+    @ApiOperation(value = "获取归档", notes = "获取归档信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "页码", defaultValue = "1", dataType = "int", paramType = "query"),
+            @ApiImplicitParam(name = "size", value = "单页大小", defaultValue = "12", dataType = "int", paramType = "query")
+    })
+    @PassToken
+    @GetMapping("/archives")
+    public RestResponse getArchive(@RequestParam(required = false, defaultValue = "1")
+                                               Integer page,
+                                   @RequestParam(required = false, defaultValue = "12")
+                                               Integer size) {
+        Result<PageInfo<ArchiveVO>> result = articleService.getArchives(page, size);
+        if (!result.isSuccess()){
+            return RestResponse.fail(result);
+        }
+        return RestResponse.ok(result);
+    }
+    
     /**
      * 预览文章
      * @param artName 文章id|别名
