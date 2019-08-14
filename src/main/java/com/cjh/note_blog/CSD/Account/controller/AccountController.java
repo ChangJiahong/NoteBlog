@@ -71,11 +71,16 @@ public class AccountController extends BaseController {
                                 HttpServletRequest request,
                                 HttpServletResponse response){
 
-        User user = getUser(request);
+        // 从缓存中获取用户信息
+        User user = webCacheService.getUserFromCache(name);
 
         if (user != null){
             // ok: 账号已登录
             LOGGER.info("["+user.getEmail()+"]: Logged account！No login is required！");
+            // 从缓存获取token
+            String token = webCacheService.getUserTokenFromCache(user.getEmail());
+            // 保存token到请求头中，返回给客户端
+            response.setHeader("Authorization", token);
             return RestResponse.ok(StatusCode.TheAccountHasBeenLoggedIn,user);
         }
 
@@ -85,13 +90,15 @@ public class AccountController extends BaseController {
             // 登录成功
             user = result.getData();
             // 保存用户信息到回话中
-            request.setAttribute(WebConst.LOGIN_USER_KEY, user);
+            request.setAttribute(WebConst.USER_LOGIN, user);
             // 生成token
             String token = TokenUtil.generateToken(user);
             // 保存token到请求头中，返回给客户端
             response.setHeader("Authorization", token);
             // 保存token到缓存中
-            webCacheService.putUserToCache(user.getEmail(), user);
+            webCacheService.putUserTokenToCache(user.getEmail(), token);
+            // 用户信息缓存
+            webCacheService.putUserToCache(user);
 
             LOGGER.info("["+user.getEmail()+"]: Login successful!");
 
@@ -119,7 +126,7 @@ public class AccountController extends BaseController {
     public RestResponse logout(HttpServletRequest request, HttpServletResponse response){
         User user = getUser(request);
         if (user != null){
-            request.removeAttribute(WebConst.LOGIN_USER_KEY);
+            request.removeAttribute(WebConst.USER_LOGIN);
             // 从缓存移除用户信息
             webCacheService.removeUserFromCache(user.getEmail());
             LOGGER.info("["+user.getEmail()+"]: logout of success！");

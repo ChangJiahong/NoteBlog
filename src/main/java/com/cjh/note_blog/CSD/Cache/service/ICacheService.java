@@ -45,22 +45,37 @@ public interface ICacheService {
 
     /**
      * 获取该用户在缓存里的信息
+     * @param emailOrUsername 用户邮箱或用户名
+     * @return 用户对象
+     */
+    User getUserFromCache(String emailOrUsername);
+
+    /**
+     * 获取该用户在缓存中的令牌
      * @param email 用户邮箱
      * @return 用户对象
      */
-    User getUserFromCache(String email);
+    String getUserTokenFromCache(String email);
 
     /**
      * 将用户信息放入缓存
-     * @param email 用户邮箱
      * @param user 用户对象
      */
-    void putUserToCache(String email, User user);
+    void putUserToCache(User user);
+
+    /**
+     * 将用户令牌放入缓存
+     * @param email 用户邮箱
+     * @param token 令牌
+     */
+    void putUserTokenToCache(String email, String token);
+
+    String removeUserTokenFromCache(String email);
 
     /**
      *  将用户信息从缓存中移除
-     * @param email 用户邮箱
+     * @param emailOrUsername 用户邮箱
      * @return 用户信息
      */
-    User removeUserFromCache(String email);
+    User removeUserFromCache(String emailOrUsername);
 }

@@ -1,6 +1,5 @@
 package com.cjh.note_blog.controller;
 
-import com.cjh.note_blog.CSD.Cache.dao.ICache;
 import com.cjh.note_blog.CSD.Cache.service.ICacheService;
 import com.cjh.note_blog.constant.WebConst;
 import com.cjh.note_blog.pojo.DO.User;
@@ -21,7 +20,7 @@ public abstract class BaseController {
     public ICacheService webCacheService;
 
     protected User getUser(HttpServletRequest request){
-        return (User) request.getAttribute(WebConst.LOGIN_USER_KEY);
+        return (User) request.getAttribute(WebConst.USER_LOGIN);
     }
 
 }

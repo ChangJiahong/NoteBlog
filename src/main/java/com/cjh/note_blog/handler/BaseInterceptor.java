@@ -11,7 +11,6 @@ import com.cjh.note_blog.pojo.DO.User;
 import com.cjh.note_blog.pojo.VO.RestResponse;
 import com.cjh.note_blog.utils.GsonUtils;
 import com.cjh.note_blog.utils.TokenUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,7 +87,7 @@ public class BaseInterceptor implements HandlerInterceptor {
             从请求头
             获取token
          */
-        String token = getToken(request);
+        String token = TokenUtil.getTokenFromRequest(request);
 
         LOGGE.info("来路地址："+uri);
         LOGGE.info("contextPath："+contextPath);
@@ -109,7 +108,7 @@ public class BaseInterceptor implements HandlerInterceptor {
                 boolean bingo = compareRole(user.getRoles(), requiredRole);
 
                 if (bingo){
-                    request.setAttribute(WebConst.LOGIN_USER_KEY, user);
+                    request.setAttribute(WebConst.USER_LOGIN, user);
                     return true;
                 }
                 // error: 用户权限不足
@@ -160,22 +159,6 @@ public class BaseInterceptor implements HandlerInterceptor {
         }
     }
 
-    private String getToken(HttpServletRequest request) {
-        /*
-             token = "Bearer "+token
-         */
-        String token = request.getHeader("token");
-
-        if (StringUtils.isBlank(token)){
-            token = request.getHeader("Authorization");
-            if (StringUtils.isNotBlank(token) && token.startsWith("Bearer ")) {
-                //如果header中存在token，则覆盖掉url中的token
-                // "Bearer "之后的内容
-                token = token.substring("Bearer ".length());
-            }
-        }
-        return token;
-    }
 
     private boolean checkPassToken(HandlerMethod handlerMethod) {
 
@@ -236,7 +219,7 @@ public class BaseInterceptor implements HandlerInterceptor {
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) {
         // 请求结束
         // 清除用户信息
-        request.removeAttribute(WebConst.LOGIN_USER_KEY);
+        request.removeAttribute(WebConst.USER_LOGIN);
     }
 
     /**

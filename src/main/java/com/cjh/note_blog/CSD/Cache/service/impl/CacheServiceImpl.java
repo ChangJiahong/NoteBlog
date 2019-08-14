@@ -5,6 +5,8 @@ import com.cjh.note_blog.CSD.Cache.service.ICacheService;
 import com.cjh.note_blog.constant.WebConst;
 import com.cjh.note_blog.pojo.DO.User;
 import com.cjh.note_blog.utils.IPKit;
+import com.cjh.note_blog.utils.PatternKit;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -91,37 +93,89 @@ public class CacheServiceImpl implements ICacheService {
     /**
      * 获取该用户在缓存里的信息
      *
+     * @param emailOrUsername 用户邮箱
+     * @return 用户对象
+     */
+    @Override
+    public User getUserFromCache(String emailOrUsername) {
+        String email = emailOrUsername;
+        if (!PatternKit.isEmail(emailOrUsername)){
+            // 不是邮箱
+            email = cache.hget(emailOrUsername, WebConst.USER_LOGIN);
+        }
+        // 获取用户信息
+        return cache.hget(email, WebConst.USER_LOGIN);
+    }
+
+    /**
+     * 获取该用户在缓存中的令牌
+     *
      * @param email 用户邮箱
      * @return 用户对象
      */
     @Override
-    public User getUserFromCache(String email) {
-
-        return cache.get(email);
+    public String getUserTokenFromCache(String email) {
+        if (!PatternKit.isEmail(email)){
+            return "";
+        }
+        return cache.hget(email, WebConst.USER_TOKEN);
     }
 
     /**
      * 将用户信息放入缓存
      *
-     * @param email 用户邮箱
      * @param user 用户对象
      */
     @Override
-    public void putUserToCache(String email, User user) {
-        cache.set(email, user);
+    public void putUserToCache(User user) {
+
+        String username = user.getUsername();
+        String email = user.getEmail();
+
+        // 关联username-email
+        cache.hset(username, WebConst.USER_LOGIN, email, WebConst.USER_LIMIT_TIME);
+        // 放入user对象到缓存
+        cache.hset(email, WebConst.USER_LOGIN, user, WebConst.USER_LIMIT_TIME);
+    }
+
+    /**
+     * 将用户令牌放入缓存
+     *
+     * @param email 用户邮箱
+     * @param token 令牌
+     */
+    @Override
+    public void putUserTokenToCache(String email, String token) {
+        if (PatternKit.isEmail(email)) {
+            cache.hset(email, WebConst.USER_TOKEN, token, WebConst.USER_LIMIT_TIME);
+        }
+    }
+
+    @Override
+    public String removeUserTokenFromCache(String email) {
+        String token = getUserTokenFromCache(email);
+        if (StringUtils.isNotBlank(token)){
+            cache.hdel(email, WebConst.USER_TOKEN);
+        }
+        return token;
     }
 
     /**
      * 将用户信息从缓存中移除
      *
-     * @param email 用户邮箱
+     * @param emailOrUsername 用户邮箱
      * @return 用户信息
      */
     @Override
-    public User removeUserFromCache(String email) {
-        User user = getUserFromCache(email);
+    public User removeUserFromCache(String emailOrUsername) {
+        User user = getUserFromCache(emailOrUsername);
         if (null != user) {
-            cache.del(email);
+            // 移除用户token
+            removeUserTokenFromCache(user.getEmail());
+            // 移除username-email
+            cache.hdel(user.getUsername(), WebConst.USER_LOGIN);
+            // 移除email-user
+            cache.hdel(user.getEmail(), WebConst.USER_LOGIN);
         }
         return user;
     }

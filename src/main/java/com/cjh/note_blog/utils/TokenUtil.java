@@ -18,6 +18,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * 令牌工具类
  * @author ChangJiahong
@@ -197,6 +199,26 @@ public class TokenUtil {
 		// error: token不合法
 		return Result.fail(StatusCode.TokenIsNotValid);
 	}
+
+
+
+	public static String getTokenFromRequest(HttpServletRequest request) {
+        /*
+             token = "Bearer "+token
+         */
+		String token = request.getHeader("token");
+
+		if (StringUtils.isBlank(token)){
+			token = request.getHeader("Authorization");
+			if (StringUtils.isNotBlank(token) && token.startsWith("Bearer ")) {
+				//如果header中存在token，则覆盖掉url中的token
+				// "Bearer "之后的内容
+				token = token.substring("Bearer ".length());
+			}
+		}
+		return token;
+	}
+
 
 	public static String getSecret() {
 		return secret;
