@@ -59,12 +59,12 @@ public class BaseInterceptor implements HandlerInterceptor {
 
         // 判断跨域请求
         response.setHeader("Access-Control-Allow-Origin",request.getHeader("Origin"));
-        // 允许携带cookie
-        response.setHeader("Access-Control-Allow-Credentials","true");
+        // 允许携带token
+        response.setHeader("Access-Control-Allow-Headers", "token,Authorization");
 
         String contextPath = request.getContextPath();
 
-        String uri = request.getRequestURI();
+        String uri = request.getRequestURI()+" - "+request.getMethod();
 
         // 不是映射到方法的可以通过
         if (!(handler instanceof HandlerMethod)){

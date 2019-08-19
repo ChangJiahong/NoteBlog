@@ -81,6 +81,8 @@ public class AccountController extends BaseController {
             String token = webCacheService.getUserTokenFromCache(user.getEmail());
             // 保存token到请求头中，返回给客户端
             response.setHeader("Authorization", token);
+            // 允许从请求头中获取token
+            response.setHeader("Access-Control-Expose-Headers", "Authorization");
             return RestResponse.ok(StatusCode.TheAccountHasBeenLoggedIn,user);
         }
 
@@ -95,6 +97,8 @@ public class AccountController extends BaseController {
             String token = TokenUtil.generateToken(user);
             // 保存token到请求头中，返回给客户端
             response.setHeader("Authorization", token);
+            // 允许从请求头中获取token
+            response.setHeader("Access-Control-Expose-Headers", "Authorization");
             // 保存token到缓存中
             webCacheService.putUserTokenToCache(user.getEmail(), token);
             // 用户信息缓存
