@@ -60,7 +60,8 @@ public class BaseInterceptor implements HandlerInterceptor {
         // 判断跨域请求
         response.setHeader("Access-Control-Allow-Origin",request.getHeader("Origin"));
         // 允许携带token
-        response.setHeader("Access-Control-Allow-Headers", "token,Authorization");
+        response.setHeader("Access-Control-Allow-Headers", "content-type,token,Authorization");
+        response.setHeader("Access-Control-Allow-Methods", "POST,GET,DELETE");
 
         String contextPath = request.getContextPath();
 

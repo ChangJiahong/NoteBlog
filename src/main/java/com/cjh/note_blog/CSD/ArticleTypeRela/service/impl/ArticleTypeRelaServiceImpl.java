@@ -120,7 +120,7 @@ public class ArticleTypeRelaServiceImpl implements IArticleTypeRelaService {
     }
 
     /**
-     * 查询所有的文章id by articleId
+     * 查询所有的种类标签 by articleId
      *
      * @param aid
      * @return
@@ -193,7 +193,7 @@ public class ArticleTypeRelaServiceImpl implements IArticleTypeRelaService {
     @Transactional(rollbackFor = {ExecutionDatabaseExcepeion.class, StatusCodeException.class})
     @Override
     public Result<List<ArticleType>> delete(Integer aid, List<Type> types) {
-        if (types.isEmpty() || aid == null){
+        if (types == null || aid == null){
             return Result.fail(StatusCode.ParameterIsNull,
                     "删除ArticleType参数aid, types不能为空");
         }

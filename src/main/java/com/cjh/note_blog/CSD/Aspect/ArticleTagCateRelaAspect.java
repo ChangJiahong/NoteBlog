@@ -83,11 +83,8 @@ public class ArticleTagCateRelaAspect {
 
             // 以前所有
             Result<List<Type>> resultType = typeRelaService.selectByArticleId(article.getId());
-            if (!resultType.isSuccess()){
 
-                throw new StatusCodeException(resultType.getStatusCode(), resultType.getMsg());
-            }
-            List<Type> oldTypes = resultType.getData();
+            List<Type> oldTypes = resultType.getData()!=null?resultType.getData():new ArrayList<>();
 
             List<Type> needDel = new ArrayList<>(oldTypes);
 

@@ -36,7 +36,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(value = StatusCodeException.class)
     public RestResponse tipException(StatusCodeException e) {
-        LOGGER.error("find myException:e={}",e.getMessage());
+        LOGGER.error("find StatusCodeException:e={}",e.getMessage());
 //        e.printStackTrace();
         return RestResponse.fail(e.getStatusCode(), e.getMessage());
     }

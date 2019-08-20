@@ -14,10 +14,12 @@ import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * ：
  * 标签服务
+ *
  * @author ChangJiahong
  * @date 2019/7/19
  */
@@ -34,9 +36,9 @@ public class TypeServiceImpl implements ITypeService {
      * @return
      */
     @Override
-    public Result selectOne(Type type) {
+    public Result<Type> selectOne(Type type) {
 
-        if (StringUtils.isBlank(type.getName()) || StringUtils.isBlank(type.getType())){
+        if (StringUtils.isBlank(type.getName()) || StringUtils.isBlank(type.getType())) {
             return Result.fail(StatusCode.ParameterIsNull);
         }
 
@@ -47,7 +49,7 @@ public class TypeServiceImpl implements ITypeService {
         criteria.andEqualTo(Table.Tag.name.name(), type.getName());
 
         Type type1 = typeMapper.selectOneByExample(example);
-        if (type1 != null){
+        if (type1 != null) {
             // 查找成功
             return Result.ok(type1);
         }
@@ -58,11 +60,12 @@ public class TypeServiceImpl implements ITypeService {
     /**
      * 创建标签
      *
-     * @param type
+     * @param type 标签对象
+     * @return 统一返回对象
      */
     @Override
     public Result<Type> create(Type type) {
-        if (StringUtils.isBlank(type.getName()) || StringUtils.isBlank(type.getType())){
+        if (StringUtils.isBlank(type.getName()) || StringUtils.isBlank(type.getType())) {
             // error 参数为空
             return Result.fail(StatusCode.ParameterIsNull,
                     "创建种类标签时，参数不能为空");
@@ -71,10 +74,31 @@ public class TypeServiceImpl implements ITypeService {
         Date now = DateUtils.getNow();
         type.setCreated(now);
         int i = typeMapper.insertUseGeneratedKeys(type);
-        if (i <= 0){
+        if (i <= 0) {
             throw new ExecutionDatabaseExcepeion("新建种类标签失败");
         }
         return Result.ok(type);
     }
 
+    /**
+     * 获取种类标签
+     *
+     * @param val category or tag
+     * @return 统一返回对象
+     */
+    @Override
+    public Result<List<Type>> getTypes(String val) {
+        if (!StringUtils.equals(val, Type.TAG) && !StringUtils.equals(val, Type.CATEGORY)) {
+            // error: 参数无效
+            return Result.fail(StatusCode.ParameterIsInvalid);
+        }
+        Type sleType = new Type();
+        sleType.setType(val);
+        List<Type> types = typeMapper.select(sleType);
+        if (types == null || types.isEmpty()) {
+            // error: 没找到
+            return Result.fail(StatusCode.DataNotFound);
+        }
+        return Result.ok(types);
+    }
 }

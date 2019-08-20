@@ -59,7 +59,7 @@ public class ArticleServiceImpl implements IArticleService {
         PageHelper.startPage(page, size);
 
         List<Article> articleList = articleMapper.selectArticles(type, typeName);
-        if (null == articleList && articleList.isEmpty()){
+        if (null == articleList || articleList.isEmpty()){
             return Result.fail(StatusCode.DataNotFound);
         }
         // 转换文章访问量
@@ -83,7 +83,7 @@ public class ArticleServiceImpl implements IArticleService {
 
         PageHelper.startPage(page, size);
         List<ArchiveVO> archiveVOS = articleMapper.selectArchives();
-        if (null == archiveVOS && archiveVOS.isEmpty()){
+        if (null == archiveVOS || archiveVOS.isEmpty()){
             // error: 没有找到
             return Result.fail(StatusCode.DataNotFound);
         }
