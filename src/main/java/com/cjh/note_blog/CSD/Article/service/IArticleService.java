@@ -5,8 +5,6 @@ import com.cjh.note_blog.pojo.DO.Article;
 import com.cjh.note_blog.pojo.VO.ArchiveVO;
 import com.github.pagehelper.PageInfo;
 
-import java.util.List;
-
 /**
  * ：
  * 文章服务 【dao】 【接口】
@@ -78,5 +76,14 @@ public interface IArticleService {
      * @param size 大小
      * @return 统一返回对象
      */
-    Result<PageInfo<ArchiveVO>> getArchives(Integer page, Integer size);
+    Result<PageInfo<ArchiveVO>> getArchives(int page, int size);
+
+    /**
+     * 获取当前用户所有文档列表
+     * @param author 作者名
+     * @param page 页码
+     * @param size 大小
+     * @return 统一返回对象
+     */
+    Result<PageInfo<Article>> getArticleList(String author, int page, int size);
 }

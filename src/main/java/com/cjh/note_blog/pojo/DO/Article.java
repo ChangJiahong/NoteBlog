@@ -46,7 +46,7 @@ public class Article implements Serializable {
     private String alias;
 
     /**
-     * 作者
+     * 作者 username
      */
     @Column(name = "author")
     private String author;

@@ -49,7 +49,7 @@ public interface ArticleMapper extends MyMapper<Article> {
      * @param date 日期 （%Y%m)
      * @return 文章集合
      */
-    List<Article> selectArticleByDate(@Param(value = "date") String date);
+    List<Article> selectArticleByDateYm(@Param(value = "date") String date);
 
     /**
      * 查询文章
@@ -65,4 +65,11 @@ public interface ArticleMapper extends MyMapper<Article> {
                                      String author,
                                      @Param(value = "byId")
                                      Boolean byId);
+
+    /**
+     * 查询当前email用户的所有文章
+     * @param author 作者名
+     * @return 文章列表
+     */
+    List<Article> selectArticleByAuthor(@Param(value = "author") String author);
 }

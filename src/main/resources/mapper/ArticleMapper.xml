@@ -103,7 +103,8 @@
         order by date desc
     </select>
 
-    <select id="selectArticleByDate" resultMap="BaseResultMap">
+<!--    查询文章通过YYmm日期格式-->
+    <select id="selectArticleByDateYm" resultMap="BaseResultMap">
         select
             <include refid="param" />
         from article as a
@@ -112,6 +113,16 @@
         group by created
         order by created desc
     </select>
+
+    <select id="selectArticleByAuthor" resultMap="BaseResultMap">
+        select
+            <include refid="param" />
+        from article as a
+        where a.author = #{author}
+        group by created
+        order by created desc
+    </select>
+
 <!--    更新文章访问量，通过增量-->
     <update id="incrementHits" >
         UPDATE article

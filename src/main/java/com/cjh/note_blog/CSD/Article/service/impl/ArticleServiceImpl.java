@@ -76,7 +76,7 @@ public class ArticleServiceImpl implements IArticleService {
      * @return 统一返回对象
      */
     @Override
-    public Result<PageInfo<ArchiveVO>> getArchives(Integer page, Integer size) {
+    public Result<PageInfo<ArchiveVO>> getArchives(int page, int size) {
         page = page < 0 || page > WebConst.MAX_PAGE ? 1 : page;
 
         size = size < 0 || size > WebConst.MAX_PAGESIZE ? WebConst.DEFAULT_PAGESIZE : size;
@@ -88,13 +88,42 @@ public class ArticleServiceImpl implements IArticleService {
             return Result.fail(StatusCode.DataNotFound);
         }
         archiveVOS.forEach(archiveVO -> {
-            List<Article> articles = articleMapper.selectArticleByDate(archiveVO.getDate());
+            List<Article> articles = articleMapper.selectArticleByDateYm(archiveVO.getDate());
             // 转换文章访问量
             conversionArticles(articles);
             archiveVO.setArticles(articles);
         });
         PageInfo<ArchiveVO> pageInfo = new PageInfo<>(archiveVOS);
         return Result.ok(pageInfo);
+    }
+
+
+    /**
+     * 获取当前用户所有文档列表
+     *
+     * @param author 作者名
+     * @param page 页码
+     * @param size 大小
+     * @return 统一返回对象
+     */
+    @Override
+    public Result<PageInfo<Article>> getArticleList(String author, int page, int size) {
+        if (StringUtils.isBlank(author)){
+            return Result.fail(StatusCode.ParameterIsNull);
+        }
+        page = page < 0 || page > WebConst.MAX_PAGE ? 1 : page;
+
+        size = size < 0 || size > WebConst.MAX_PAGESIZE ? WebConst.DEFAULT_PAGESIZE : size;
+
+        PageHelper.startPage(page, size);
+
+        List<Article> articles = articleMapper.selectArticleByAuthor(author);
+
+        // 转换文章访问量
+        conversionArticles(articles);
+        PageInfo<Article> pageInfo = new PageInfo<>(articles);
+        return Result.ok(pageInfo);
+
     }
 
     /**

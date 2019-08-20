@@ -101,9 +101,12 @@ public class BaseInterceptor implements HandlerInterceptor {
             // 允许访问
             // 保存user
             String email = (String) result.getData();
+            // 缓存获取token信息
+            String uToken = webCacheService.getUserTokenFromCache(email);
             // 缓存获取 用户信息，没有则返回登录失效
             User user = webCacheService.getUserFromCache(email);
-            if (user != null){
+            // 缓存中有该用户令牌才有效
+            if (token.equals(uToken) && user != null){
                 // 验证权限
                 boolean bingo = compareRole(user.getRoles(), requiredRole);
 

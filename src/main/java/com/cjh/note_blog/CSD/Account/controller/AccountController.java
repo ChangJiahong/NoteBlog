@@ -46,13 +46,15 @@ public class AccountController extends BaseController {
 
 
     /**
+     * 【公共方法】【免验证】
      * 登录请求
+     *
      * @param name 用户名|email
      * @param password 密码
      * @param remeber_me 是否记住（非必要）
-     * @param request
-     * @param response
-     * @return
+     * @param request 请求对象
+     * @param response 响应对象
+     * @return 统一返回对象
      */
     @ApiOperation(value = "登录", notes = "用户登录通过用户名或email")
     @ApiImplicitParams({
@@ -116,7 +118,10 @@ public class AccountController extends BaseController {
 
 
     /**
+     * 【私有方法】【验证】
+     * 【个人用户权限】
      * 注销请求
+     *
      * @param request
      * @param response
      * @return
@@ -143,7 +148,10 @@ public class AccountController extends BaseController {
 
 
     /**
+     * 【私有方法】【验证】
+     * 【管理员权限】
      * 注册 管理员以上级别用户才能注册账户
+     *
      * @param request
      * @param response
      * @param user
