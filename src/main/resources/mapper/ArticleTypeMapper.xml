@@ -9,4 +9,13 @@
     <id column="tid" property="tid" jdbcType="INTEGER" />
     <result column="created" property="created" jdbcType="TIMESTAMP" />
   </resultMap>
+
+  <select id="selectByAuthor" resultMap="BaseResultMap" >
+
+    select aty.aid aid, aty.tid tid
+    from article_type aty
+    join article a on a.author = #{username} and a.id = aty.aid
+    where aty.tid = #{tId}
+
+  </select>
 </mapper>

@@ -2,6 +2,7 @@ package com.cjh.note_blog.CSD.ArticleTypeRela.service.impl;
 
 import com.cjh.note_blog.CSD.ArticleTypeRela.service.IArticleTypeRelaService;
 import com.cjh.note_blog.constant.StatusCode;
+import com.cjh.note_blog.constant.Table;
 import com.cjh.note_blog.exc.ExecutionDatabaseExcepeion;
 import com.cjh.note_blog.exc.StatusCodeException;
 import com.cjh.note_blog.mapper.ArticleTypeMapper;
@@ -12,6 +13,7 @@ import com.cjh.note_blog.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tk.mybatis.mapper.entity.Example;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -209,5 +211,43 @@ public class ArticleTypeRelaServiceImpl implements IArticleTypeRelaService {
         }
 
         return Result.ok(articleTypes);
+    }
+
+    /**
+     * 获取关系，通过type和email
+     *
+     * @param tId typeId
+     * @param username 用户名
+     * @return 统一返回对象
+     */
+    @Override
+    public Result<List<ArticleType>> selectByAuthor(Integer tId, String username) {
+
+        List<ArticleType> articleTypes = articleTypeMapper.selectByAuthor(tId, username);
+        if (articleTypes == null || articleTypes.isEmpty()){
+            return Result.fail(StatusCode.DataNotFound, "查询关系没有找到");
+        }
+        return Result.ok(articleTypes);
+    }
+
+
+    /**
+     * 删除关系 删除所有有关该文章的关系
+     *
+     * @param aid 文章id
+     * @return 统一返回对象
+     */
+    @Override
+    public Result<ArticleType> deleteByArticleId(Integer aid) {
+        Example example = new Example(ArticleType.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo(Table.ArticleType.aid.name(), aid);
+        int i = articleTypeMapper.deleteByExample(example);
+        if (i <= 0){
+            Result.fail(StatusCode.ExecutionDatabaseError,
+                    "执行删除ArticleType失败，aid="+aid);
+        }
+
+        return Result.ok();
     }
 }

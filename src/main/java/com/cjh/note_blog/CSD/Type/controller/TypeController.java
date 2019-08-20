@@ -6,10 +6,11 @@ import com.cjh.note_blog.controller.BaseController;
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.Type;
 import com.cjh.note_blog.pojo.VO.RestResponse;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * :
@@ -26,9 +27,12 @@ public class TypeController extends BaseController {
     private ITypeService typeService;
 
     /**
+     * 【公有接口】
+     * 【个人用户权限】
      * 获取所有标签
      * @return 统一返回对象
      */
+    @ApiOperation(value = "获取所有标签", notes = "获取所有标签")
     @PassToken
     @GetMapping("/tag")
     public RestResponse getTags() {
@@ -37,9 +41,12 @@ public class TypeController extends BaseController {
     }
 
     /**
+     * 【公有接口】
+     * 【个人用户权限】
      * 获取所有种类
      * @return 统一返回对象
      */
+    @ApiOperation(value = "获取所有种类", notes = "获取所有种类")
     @PassToken
     @GetMapping("/category")
     public RestResponse getCategorys() {
@@ -60,4 +67,7 @@ public class TypeController extends BaseController {
 
         return RestResponse.ok(result);
     }
+
+
+
 }

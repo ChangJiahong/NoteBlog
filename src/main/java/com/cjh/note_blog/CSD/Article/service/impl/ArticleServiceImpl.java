@@ -1,5 +1,6 @@
 package com.cjh.note_blog.CSD.Article.service.impl;
 
+import com.cjh.note_blog.CSD.ArticleTypeRela.service.IArticleTypeRelaService;
 import com.cjh.note_blog.CSD.Cache.service.ICacheService;
 import com.cjh.note_blog.constant.StatusCode;
 import com.cjh.note_blog.constant.Table;
@@ -26,6 +27,7 @@ import java.util.List;
 /**
  * ：
  * 文章服务 【dao】
+ *
  * @author ChangJiahong
  * @date 2019/7/17
  */
@@ -37,6 +39,9 @@ public class ArticleServiceImpl implements IArticleService {
 
     @Autowired
     private ICacheService webCacheService;
+
+    @Autowired
+    private IArticleTypeRelaService relaService;
 
     /**
      * 获取文章集合
@@ -59,7 +64,7 @@ public class ArticleServiceImpl implements IArticleService {
         PageHelper.startPage(page, size);
 
         List<Article> articleList = articleMapper.selectArticles(type, typeName);
-        if (null == articleList || articleList.isEmpty()){
+        if (null == articleList || articleList.isEmpty()) {
             return Result.fail(StatusCode.DataNotFound);
         }
         // 转换文章访问量
@@ -83,7 +88,7 @@ public class ArticleServiceImpl implements IArticleService {
 
         PageHelper.startPage(page, size);
         List<ArchiveVO> archiveVOS = articleMapper.selectArchives();
-        if (null == archiveVOS || archiveVOS.isEmpty()){
+        if (null == archiveVOS || archiveVOS.isEmpty()) {
             // error: 没有找到
             return Result.fail(StatusCode.DataNotFound);
         }
@@ -102,13 +107,13 @@ public class ArticleServiceImpl implements IArticleService {
      * 获取当前用户所有文档列表
      *
      * @param author 作者名
-     * @param page 页码
-     * @param size 大小
+     * @param page   页码
+     * @param size   大小
      * @return 统一返回对象
      */
     @Override
     public Result<PageInfo<Article>> getArticleList(String author, int page, int size) {
-        if (StringUtils.isBlank(author)){
+        if (StringUtils.isBlank(author)) {
             return Result.fail(StatusCode.ParameterIsNull);
         }
         page = page < 0 || page > WebConst.MAX_PAGE ? 1 : page;
@@ -130,13 +135,14 @@ public class ArticleServiceImpl implements IArticleService {
      * 转换文章集合
      * 将文章集合转换成页面集合
      * 统计总文章访问量 = （数据库+缓存） 文章访问量
+     *
      * @param articleList 文章集合
      */
     private void conversionArticles(List<Article> articleList) {
         articleList.forEach(article -> {
             // 加上cache里的访问量
             int incrementHits = webCacheService.getHitsFromCache(article.getId());
-            article.setHits(article.getHits()+incrementHits);
+            article.setHits(article.getHits() + incrementHits);
         });
     }
 
@@ -149,13 +155,13 @@ public class ArticleServiceImpl implements IArticleService {
     @Override
     public Result<Article> getArticleByArtName(String artName) {
 
-        if (StringUtils.isBlank(artName)){
+        if (StringUtils.isBlank(artName)) {
             // error: 参数为空
             return Result.fail(StatusCode.ParameterIsNull);
         }
 
         Article article = articleMapper.selectByArtName(artName, StringUtils.isNumeric(artName));
-        if (article == null){
+        if (article == null) {
             // error: 未找到
             return Result.fail(StatusCode.DataNotFound);
         }
@@ -164,7 +170,7 @@ public class ArticleServiceImpl implements IArticleService {
         int hits = webCacheService.getHitsFromCache(article.getId());
 
         // 加上cache里的访问量
-        article.setHits(article.getHits()+hits);
+        article.setHits(article.getHits() + hits);
 
         return Result.ok(article);
     }
@@ -178,7 +184,7 @@ public class ArticleServiceImpl implements IArticleService {
      */
     @Override
     public Result<Article> getPreviewArticleByArtNameAndAuthor(String artName, String author) {
-        if (StringUtils.isBlank(artName) || StringUtils.isBlank(author)){
+        if (StringUtils.isBlank(artName) || StringUtils.isBlank(author)) {
             return Result.fail(StatusCode.ParameterIsNull);
         }
 
@@ -194,7 +200,7 @@ public class ArticleServiceImpl implements IArticleService {
         int hits = webCacheService.getHitsFromCache(article.getId());
 
         // 加上cache里的访问量
-        article.setHits(article.getHits()+hits);
+        article.setHits(article.getHits() + hits);
 
         return Result.ok(article);
     }
@@ -208,12 +214,12 @@ public class ArticleServiceImpl implements IArticleService {
     @Transactional(rollbackFor = {ExecutionDatabaseExcepeion.class, StatusCodeException.class})
     @Override
     public Result publish(Article article) {
-        if (article == null){
+        if (article == null) {
             // error: 参数为空
             return Result.fail(StatusCode.ParameterIsNull);
         }
 
-        if (!StringUtils.isBlank(article.getAlias())){
+        if (!StringUtils.isBlank(article.getAlias())) {
             // 检查别名是否重复
             Example example = new Example(Article.class);
             Example.Criteria criteria = example.createCriteria();
@@ -222,8 +228,8 @@ public class ArticleServiceImpl implements IArticleService {
                 criteria.andNotEqualTo(Table.Article.id.name(), article.getId());
             }
             int i = articleMapper.selectCountByExample(example);
-            if (i > 0){
-                return Result.fail(StatusCode.DataAlreadyExists,"该别名已存在！");
+            if (i > 0) {
+                return Result.fail(StatusCode.DataAlreadyExists, "该别名已存在！");
             }
         }
 
@@ -247,7 +253,7 @@ public class ArticleServiceImpl implements IArticleService {
 
         int re = 0;
 
-        if (article.getId() == null){
+        if (article.getId() == null) {
             // 创建时间
             article.setCreated(now);
             // 新建文章
@@ -258,7 +264,7 @@ public class ArticleServiceImpl implements IArticleService {
             re = articleMapper.updateByPrimaryKeySelective(article);
         }
 
-        if (re <= 0){
+        if (re <= 0) {
 
             // error: 执行数据库错误
             throw new ExecutionDatabaseExcepeion("publish文章失败");
@@ -302,7 +308,7 @@ public class ArticleServiceImpl implements IArticleService {
      */
     @Override
     public Result updateHits(Integer id, int increment) {
-        if (id == null){
+        if (id == null) {
             return Result.fail(StatusCode.ParameterIsNull);
         }
 
@@ -323,17 +329,22 @@ public class ArticleServiceImpl implements IArticleService {
      * @param id
      * @return
      */
+    @Transactional(rollbackFor = ExecutionDatabaseExcepeion.class)
     @Override
     public Result delArticleById(Integer id) {
-        if (id == null){
+        if (id == null) {
             return Result.fail(StatusCode.ParameterIsNull);
         }
-
+        // 删除文章
         int i = articleMapper.deleteByPrimaryKey(id);
-        if (i <= 0 ){
-            return Result.fail(StatusCode.ExecutionDatabaseError, "删除文章失败");
+        if (i <= 0) {
+            throw new ExecutionDatabaseExcepeion("删除文章失败");
         }
-
+        // 删除文章关系
+        Result result = relaService.deleteByArticleId(id);
+        if (!result.isSuccess()) {
+            throw new ExecutionDatabaseExcepeion(result.getMsg());
+        }
         return Result.ok();
     }
 }

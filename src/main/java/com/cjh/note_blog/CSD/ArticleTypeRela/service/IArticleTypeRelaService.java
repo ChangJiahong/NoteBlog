@@ -15,7 +15,8 @@ import java.util.List;
 public interface IArticleTypeRelaService {
     /**
      * 建立文章 —— 标签关系
-     * @param articleType
+     * @param articleType 关系对象
+     * @return 统一返回对象
      */
     public Result<ArticleType> create(ArticleType articleType);
 
@@ -23,6 +24,7 @@ public interface IArticleTypeRelaService {
      * 建立文章 —— 标签关系
      * @param aid 文章id
      * @param tid 标签id
+     * @return 统一返回对象
      */
     public Result<ArticleType> create(Integer aid, Integer tid);
 
@@ -30,7 +32,7 @@ public interface IArticleTypeRelaService {
      * 建立文章 —— 标签关系
      * @param aid 文章id
      * @param types 标签
-     * @return
+     * @return 统一返回对象
      */
     public Result<List<ArticleType>> create(Integer aid, List<Type> types);
 
@@ -39,13 +41,14 @@ public interface IArticleTypeRelaService {
      * 查询 关系
      * @param aid 文章id
      * @param tid 标签id
+     * @return 统一返回对象
      */
     public Result<ArticleType> selectOne(Integer aid, Integer tid);
 
     /**
-     * 查询所有的文章id by articleId
-     * @param aid
-     * @return
+     * 查询所有的 by articleId
+     * @param aid 文章id
+     * @return 统一返回对象
      */
     public Result<List<Type>> selectByArticleId(Integer aid);
 
@@ -53,6 +56,7 @@ public interface IArticleTypeRelaService {
      * 删除 关系
      * @param aid  文章id
      * @param tid  标签id
+     * @return 统一返回对象
      */
     public Result<ArticleType> delete(Integer aid, Integer tid);
 
@@ -61,9 +65,23 @@ public interface IArticleTypeRelaService {
      *
      * @param aid
      * @param types
+     * @return 统一返回对象
      */
     public Result<List<ArticleType>> delete(Integer aid, List<Type> types);
 
 
+    /**
+     * 获取关系，通过type和email
+     * @param tId type Id
+     * @param username 用户名
+     * @return 统一返回对象
+     */
+    Result<List<ArticleType>> selectByAuthor(Integer tId, String username);
 
+    /**
+     * 删除关系
+     * @param id 文章id
+     * @return 统一返回对象
+     */
+    Result<ArticleType> deleteByArticleId(Integer id);
 }

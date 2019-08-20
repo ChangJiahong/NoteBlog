@@ -1,5 +1,7 @@
 package com.cjh.note_blog.constant;
 
+import com.cjh.note_blog.pojo.DO.ArticleType;
+
 /**
  * ：数据库表
  * 字段名
@@ -111,5 +113,20 @@ public class Table {
          * 创建时间
          */
         created
+    }
+
+    public enum ArticleType {
+        /**
+         * 文章id
+         */
+        aid,
+        /**
+         * typeId
+         */
+        tid,
+        /**
+         * 创建时间
+         */
+        creatd
     }
 }

@@ -83,7 +83,11 @@ public class ArticleTagCateRelaAspect {
 
             // 以前所有
             Result<List<Type>> resultType = typeRelaService.selectByArticleId(article.getId());
-
+            if (!resultType.isSuccess()){
+                if (resultType.getStatusCode() != StatusCode.DataNotFound){
+                    throw new StatusCodeException(resultType.getStatusCode(), "查询type关系失败");
+                }
+            }
             List<Type> oldTypes = resultType.getData()!=null?resultType.getData():new ArrayList<>();
 
             List<Type> needDel = new ArrayList<>(oldTypes);
