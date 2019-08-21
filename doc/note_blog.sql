@@ -11,7 +11,7 @@
  Target Server Version : 80011
  File Encoding         : 65001
 
- Date: 05/08/2019 17:55:03
+ Date: 21/08/2019 12:32:56
 */
 
 SET NAMES utf8mb4;
@@ -24,7 +24,8 @@ DROP TABLE IF EXISTS `article`;
 CREATE TABLE `article`  (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '文章id',
   `title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '文章标题',
-  `author_id` int(11) NULL DEFAULT NULL COMMENT '作者id',
+  `alias` varchar(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '文章别名',
+  `author` varchar(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '作者',
   `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '文章内容',
   `info` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '描述信息',
   `hits` int(10) UNSIGNED NULL DEFAULT 0 COMMENT '单击次数',
@@ -32,9 +33,10 @@ CREATE TABLE `article`  (
   `created` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
   `status` enum('publish','draft') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT 'publish' COMMENT '文章状态',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `author_id`(`author_id`) USING BTREE,
-  CONSTRAINT `article_ibfk_1` FOREIGN KEY (`author_id`) REFERENCES `user` (`uid`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '文章表' ROW_FORMAT = Dynamic;
+  UNIQUE INDEX `alias`(`alias`) USING BTREE,
+  INDEX `author`(`author`) USING BTREE,
+  CONSTRAINT `article_ibfk_1` FOREIGN KEY (`author`) REFERENCES `user` (`username`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE = InnoDB AUTO_INCREMENT = 15 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '文章表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for article_type
@@ -56,7 +58,7 @@ CREATE TABLE `role`  (
   `rname` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '角色名',
   `created` timestamp(0) NOT NULL ON UPDATE CURRENT_TIMESTAMP(0) COMMENT '创建时间',
   PRIMARY KEY (`rid`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for type
@@ -68,7 +70,7 @@ CREATE TABLE `type`  (
   `type` varchar(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '类型',
   `created` timestamp(0) NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 19 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 22 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for user
@@ -81,12 +83,12 @@ CREATE TABLE `user`  (
   `password` varchar(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '密码',
   `img_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '头像地址',
   `sex` tinyint(1) UNSIGNED ZEROFILL NOT NULL COMMENT '性别（1男/0女）',
-  `age` tinyint(4) NOT NULL COMMENT '年龄',
+  `age` int(4) NOT NULL COMMENT '年龄',
   `created` timestamp(0) NOT NULL ON UPDATE CURRENT_TIMESTAMP(0) COMMENT '创建时间',
   PRIMARY KEY (`uid`) USING BTREE,
   UNIQUE INDEX `username`(`username`) USING BTREE,
   UNIQUE INDEX `email`(`email`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for user_role
