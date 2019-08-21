@@ -1,11 +1,11 @@
 # 任务清单
 - [ ] [账户管理](../src/main/java/com/cjh/note_blog/CSD/Account/README.md)；
-- [ ] [文章管理](../src/main/java/com/cjh/note_blog/CSD/Article/README.md)；
+- [x] [文章管理](../src/main/java/com/cjh/note_blog/CSD/Article/README.md)；
 - [x] [文章和标签关系管理](../src/main/java/com/cjh/note_blog/CSD/ArticleTypeRela/README.md)；
 - [ ] [文件管理](../src/main/java/com/cjh/note_blog/CSD/File/README.md);
-- [ ] [标签种类管理](../src/main/java/com/cjh/note_blog/CSD/Type/README.md)；
+- [x] [标签种类管理](../src/main/java/com/cjh/note_blog/CSD/Type/README.md)；
 - [ ] 评论功能；
-- [ ] 文件管理；
 - [ ] 友链管理；
 - [ ] 我的书架；
+- [ ] 视频播放；
 - [ ] 文章订阅；
