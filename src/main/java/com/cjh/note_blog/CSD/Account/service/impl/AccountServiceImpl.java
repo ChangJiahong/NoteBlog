@@ -59,7 +59,6 @@ public class AccountServiceImpl implements IAccountService {
             assert password != null;
             if (password.equals(user.getPassword())){
                 // 验证成功
-                user.setPassword(null);
                 return Result.ok(user);
             }else {
                 // 密码错误

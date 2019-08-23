@@ -10,6 +10,7 @@ import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.Role;
 import com.cjh.note_blog.pojo.DO.User;
 import com.cjh.note_blog.pojo.VO.RestResponse;
+import com.cjh.note_blog.utils.MD5;
 import com.cjh.note_blog.utils.TokenUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -32,7 +33,7 @@ import javax.validation.constraints.Size;
  * @author ChangJiahong
  * @date 2019/7/16
  */
-@Api( tags = "登录/注销/注册接口")
+@Api(tags = "登录/注销/注册接口")
 @Validated
 @RestController
 @RequestMapping
@@ -41,19 +42,18 @@ public class AccountController extends BaseController {
     private static final Logger LOGGER = LoggerFactory.getLogger(AccountController.class);
 
     @Autowired
-    private IAccountService accountService ;
-
+    private IAccountService accountService;
 
 
     /**
      * 【公共方法】【免验证】
      * 登录请求
      *
-     * @param name 用户名|email
-     * @param password 密码
+     * @param name       用户名|email
+     * @param password   密码
      * @param remeber_me 是否记住（非必要）
-     * @param request 请求对象
-     * @param response 响应对象
+     * @param request    请求对象
+     * @param response   响应对象
      * @return 统一返回对象
      */
     @ApiOperation(value = "登录", notes = "用户登录通过用户名或email")
@@ -71,26 +71,30 @@ public class AccountController extends BaseController {
                                 @RequestParam String password,
                                 @RequestParam(required = false) String remeber_me,
                                 HttpServletRequest request,
-                                HttpServletResponse response){
+                                HttpServletResponse response) {
 
         // 从缓存中获取用户信息
         User user = webCacheService.getUserFromCache(name);
 
-        if (user != null){
+        if (user != null) {
+            if (!user.getPassword().equals(MD5.encode(password))) {
+                // 密码错误
+                return RestResponse.fail(StatusCode.PasswordMistake);
+            }
             // ok: 账号已登录
-            LOGGER.info("["+user.getEmail()+"]: Logged account！No login is required！");
+            LOGGER.info("[" + user.getEmail() + "]: Logged account！No login is required！");
             // 从缓存获取token
             String token = webCacheService.getUserTokenFromCache(user.getEmail());
             // 保存token到请求头中，返回给客户端
             response.setHeader("Authorization", token);
             // 允许从请求头中获取token
             response.setHeader("Access-Control-Expose-Headers", "Authorization");
-            return RestResponse.ok(StatusCode.TheAccountHasBeenLoggedIn,user);
+            return RestResponse.ok(StatusCode.TheAccountHasBeenLoggedIn, user);
         }
 
         Result<User> result = accountService.loginByEmailOrUsername(name, password);
 
-        if (result.isSuccess()){
+        if (result.isSuccess()) {
             // 登录成功
             user = result.getData();
             // 保存用户信息到回话中
@@ -106,12 +110,12 @@ public class AccountController extends BaseController {
             // 用户信息缓存
             webCacheService.putUserToCache(user);
 
-            LOGGER.info("["+user.getEmail()+"]: Login successful!");
+            LOGGER.info("[" + user.getEmail() + "]: Login successful!");
 
             return RestResponse.ok(user);
-        }else {
+        } else {
             // 登录失败
-            LOGGER.info("["+name+"]: Login failure!The error message: "+result.getMsg());
+            LOGGER.info("[" + name + "]: Login failure!The error message: " + result.getMsg());
             return RestResponse.fail(result);
         }
     }
@@ -132,13 +136,13 @@ public class AccountController extends BaseController {
     })
     @UserLoginToken
     @PostMapping("/logout")
-    public RestResponse logout(HttpServletRequest request, HttpServletResponse response){
+    public RestResponse logout(HttpServletRequest request, HttpServletResponse response) {
         User user = getUser(request);
-        if (user != null){
+        if (user != null) {
             request.removeAttribute(WebConst.USER_LOGIN);
             // 从缓存移除用户信息
             webCacheService.removeUserFromCache(user.getEmail());
-            LOGGER.info("["+user.getEmail()+"]: logout of success！");
+            LOGGER.info("[" + user.getEmail() + "]: logout of success！");
             // 注销成功
             return RestResponse.ok(StatusCode.LogoutOfSuccess);
         }
@@ -165,7 +169,7 @@ public class AccountController extends BaseController {
     @UserLoginToken(Role.ADMIN)
     @PostMapping("/register")
     public RestResponse register(HttpServletRequest request, HttpServletResponse response,
-                                 @RequestBody User user){
+                                 @RequestBody User user) {
 
         return RestResponse.ok();
     }

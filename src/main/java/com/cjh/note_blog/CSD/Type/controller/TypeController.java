@@ -6,6 +6,7 @@ import com.cjh.note_blog.controller.BaseController;
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.Type;
 import com.cjh.note_blog.pojo.VO.RestResponse;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,7 @@ import javax.servlet.http.HttpServletRequest;
  * @author ChangJiahong
  * @date 2019/8/7
  */
-
+@Api( tags = "标签管理接口")
 @RestController
 @RequestMapping("api/type")
 public class TypeController extends BaseController {
