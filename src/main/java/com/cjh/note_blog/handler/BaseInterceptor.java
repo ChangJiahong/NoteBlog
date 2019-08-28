@@ -1,8 +1,10 @@
 package com.cjh.note_blog.handler;
 
+import com.cjh.note_blog.annotations.AllowHeaders;
 import com.cjh.note_blog.app.cache.service.ICacheService;
 import com.cjh.note_blog.annotations.PassToken;
 import com.cjh.note_blog.annotations.UserLoginToken;
+import com.cjh.note_blog.conf.WebConfig;
 import com.cjh.note_blog.constant.StatusCode;
 import com.cjh.note_blog.constant.WebConst;
 import com.cjh.note_blog.pojo.BO.Result;
@@ -11,6 +13,7 @@ import com.cjh.note_blog.pojo.DO.User;
 import com.cjh.note_blog.pojo.VO.RestResponse;
 import com.cjh.note_blog.utils.GsonUtils;
 import com.cjh.note_blog.utils.TokenUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +28,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * url 拦截器
+ *
  * @author CJH
  * on 2019/3/13
  */
@@ -47,8 +52,12 @@ public class BaseInterceptor implements HandlerInterceptor {
      */
     private String requiredRole;
 
+    @Autowired
+    private WebConfig webConfig;
+
     /**
      * 开始拦截 调用处理程序之前
+     *
      * @param request
      * @param response
      * @param handler
@@ -58,29 +67,33 @@ public class BaseInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
 
         // 判断跨域请求
-        response.setHeader("Access-Control-Allow-Origin",request.getHeader("Origin"));
-        // 允许携带token
-        response.setHeader("Access-Control-Allow-Headers", "content-type,token,Authorization");
+        response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+        // 默认允许携带token
         response.setHeader("Access-Control-Allow-Methods", "POST,GET,DELETE");
 
         String contextPath = request.getContextPath();
 
-        String uri = request.getRequestURI()+" - "+request.getMethod();
+        webConfig.root = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath();
+
+        String uri = request.getRequestURI() + " - " + request.getMethod();
 
         // 不是映射到方法的可以通过
-        if (!(handler instanceof HandlerMethod)){
-            LOGGE.info("["+uri+"]:未映射路径，默认跳过验证");
+        if (!(handler instanceof HandlerMethod)) {
+            LOGGE.info("[" + uri + "]:未映射路径，默认跳过验证");
             return true;
         }
 
         HandlerMethod handlerMethod = (HandlerMethod) handler;
 
-
         // 检查是否需要验证token
         boolean isPassToken = checkPassToken(handlerMethod);
 
-        if (isPassToken){
-            LOGGE.info("["+uri+"]:免验证");
+        List<String> headers = allowHeaders(handlerMethod);
+        response.addHeader("Access-Control-Allow-Headers", StringUtils.join(headers, ","));
+
+
+        if (isPassToken) {
+            LOGGE.info("[" + uri + "]:免验证");
             return true;
         }
 
@@ -90,14 +103,14 @@ public class BaseInterceptor implements HandlerInterceptor {
          */
         String token = TokenUtil.getTokenFromRequest(request);
 
-        LOGGE.info("来路地址："+uri);
-        LOGGE.info("contextPath："+contextPath);
-        LOGGE.info("token:"+token);
+        LOGGE.info("来路地址：" + uri);
+        LOGGE.info("contextPath：" + contextPath);
+        LOGGE.info("token:" + token);
 
         // 验证解析token
         Result result = TokenUtil.checkToken(token);
 
-        if (result.isSuccess()){
+        if (result.isSuccess()) {
             // 身份验证成功
             // 允许访问
             // 保存user
@@ -107,18 +120,18 @@ public class BaseInterceptor implements HandlerInterceptor {
             // 缓存获取 用户信息，没有则返回登录失效
             User user = webCacheService.getUserFromCache(email);
             // 缓存中有该用户令牌才有效
-            if (token.equals(uToken) && user != null){
+            if (token.equals(uToken) && user != null) {
                 // 验证权限
                 boolean bingo = compareRole(user.getRoles(), requiredRole);
 
-                if (bingo){
+                if (bingo) {
                     request.setAttribute(WebConst.USER_LOGIN, user);
                     return true;
                 }
                 // error: 用户权限不足
                 result = Result.fail(StatusCode.InadequateUserRights);
 
-            }else {
+            } else {
                 // error: 登录状态失效
                 result = Result.fail(StatusCode.LogonStateFailure);
             }
@@ -136,9 +149,9 @@ public class BaseInterceptor implements HandlerInterceptor {
         boolean bingo = false;
         int b = getIntegerForRole(requiredRole);
 
-        for (String role : roleList){
+        for (String role : roleList) {
             int a = getIntegerForRole(role);
-            if (a >= b){
+            if (a >= b) {
                 bingo = true;
             }
         }
@@ -147,11 +160,12 @@ public class BaseInterceptor implements HandlerInterceptor {
 
     /**
      * 获得角色值
+     *
      * @param role
      * @return
      */
     private int getIntegerForRole(String role) {
-        switch (role){
+        switch (role) {
             case Role.SUPER_ADMIN:
                 return 3;
             case Role.ADMIN:
@@ -163,6 +177,20 @@ public class BaseInterceptor implements HandlerInterceptor {
         }
     }
 
+    private List<String> allowHeaders(HandlerMethod handlerMethod) {
+        List<String> headers = new ArrayList<>();
+        headers.add("content-type");
+        headers.add("token");
+        headers.add("Authorization");
+        Method cls = handlerMethod.getMethod();
+        if (cls.isAnnotationPresent(AllowHeaders.class)) {
+            AllowHeaders allowHeaders = (AllowHeaders) cls.getAnnotation(AllowHeaders.class);
+            for (String s : allowHeaders.value()) {
+                headers.add(s);
+            }
+        }
+        return headers;
+    }
 
     private boolean checkPassToken(HandlerMethod handlerMethod) {
 
@@ -182,7 +210,7 @@ public class BaseInterceptor implements HandlerInterceptor {
         // 类级 验证是否有passToken注解
         isPassToken = isPassToken(cls, isPassToken);
 
-        Method method=handlerMethod.getMethod();
+        Method method = handlerMethod.getMethod();
         // 方法级 验证是否有passToken注解
         isPassToken = isPassToken(method, isPassToken);
         return isPassToken;
@@ -190,18 +218,19 @@ public class BaseInterceptor implements HandlerInterceptor {
 
     /**
      * 检查token注解
+     *
      * @param ae
      * @param isPassToken
      * @return
      */
     private boolean isPassToken(AnnotatedElement ae, boolean isPassToken) {
-        if (ae.isAnnotationPresent(UserLoginToken.class)){
+        if (ae.isAnnotationPresent(UserLoginToken.class)) {
             // 有 UserLoginToken 注释，进行权限验证
             UserLoginToken userLoginToken = (UserLoginToken) ae.getAnnotation(UserLoginToken.class);
             requiredRole = userLoginToken.value();
 
             isPassToken = false;
-        }else if (ae.isAnnotationPresent(PassToken.class)){
+        } else if (ae.isAnnotationPresent(PassToken.class)) {
             PassToken passToken = (PassToken) ae.getAnnotation(PassToken.class);
             // 有 PassToken 注释，不要验证
             isPassToken = true;
@@ -210,10 +239,9 @@ public class BaseInterceptor implements HandlerInterceptor {
     }
 
 
-
-
     /**
      * 结束 调用处理程序之后
+     *
      * @param request
      * @param response
      * @param handler
@@ -228,6 +256,7 @@ public class BaseInterceptor implements HandlerInterceptor {
 
     /**
      * 视图渲染之后
+     *
      * @param request
      * @param response
      * @param handler

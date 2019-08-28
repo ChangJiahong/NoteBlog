@@ -32,7 +32,7 @@ public class CacheServiceImpl implements ICacheService {
     @Override
     public int getHitsFromCache(Integer id) {
         // 键
-        String key = "article"+id;
+        String key = "article" + id;
         // 领域
         String field = "hits";
         // 点击数
@@ -45,13 +45,13 @@ public class CacheServiceImpl implements ICacheService {
     /**
      * 文章访问量放入缓存
      *
-     * @param id 文章id
+     * @param id   文章id
      * @param hits 文章点击数
      */
     @Override
     public void putHitsToCache(Integer id, Integer hits) {
         // 键
-        String key = "article"+id;
+        String key = "article" + id;
         // 领域
         String field = "hits";
         cache.hset(key, field, hits);
@@ -69,13 +69,14 @@ public class CacheServiceImpl implements ICacheService {
         String ipC = ip + ":" + id;
 
         // 从cache获取ip地址信息
-        Integer count = cache.hget(HITS_FREQUENCY, ipC);
+        Integer count = cache.hget(ipC, HITS_FREQUENCY);
         return count;
     }
 
     /**
      * 标记该ip
      * 使ip在内存中计数+1
+     *
      * @param ip ip地址
      * @param id 文章id
      * @return 返回该ip访问次数
@@ -85,7 +86,7 @@ public class CacheServiceImpl implements ICacheService {
         String ipC = ip + ":" + id;
         Integer count = getVisitsIpCount(ip, id);
         count = count == null ? 1 : count + 1;
-        cache.hset(HITS_FREQUENCY, ipC, count, WebConst.HITS_LIMIT_TIME);
+        cache.hset(ipC, HITS_FREQUENCY, count, WebConst.HITS_LIMIT_TIME);
         return count;
     }
 
@@ -98,7 +99,7 @@ public class CacheServiceImpl implements ICacheService {
     @Override
     public User getUserFromCache(String emailOrUsername) {
         String email = emailOrUsername;
-        if (!PatternKit.isEmail(emailOrUsername)){
+        if (!PatternKit.isEmail(emailOrUsername)) {
             // 不是邮箱
             email = cache.hget(emailOrUsername, WebConst.USER_LOGIN);
         }
@@ -114,7 +115,7 @@ public class CacheServiceImpl implements ICacheService {
      */
     @Override
     public String getUserTokenFromCache(String email) {
-        if (!PatternKit.isEmail(email)){
+        if (!PatternKit.isEmail(email)) {
             return "";
         }
         return cache.hget(email, WebConst.USER_TOKEN);
@@ -153,7 +154,7 @@ public class CacheServiceImpl implements ICacheService {
     @Override
     public String removeUserTokenFromCache(String email) {
         String token = getUserTokenFromCache(email);
-        if (StringUtils.isNotBlank(token)){
+        if (StringUtils.isNotBlank(token)) {
             cache.hdel(email, WebConst.USER_TOKEN);
         }
         return token;
@@ -177,5 +178,30 @@ public class CacheServiceImpl implements ICacheService {
             cache.hdel(user.getEmail(), WebConst.USER_LOGIN);
         }
         return user;
+    }
+
+    /**
+     * 获取文章内容html格式 从缓存中
+     *
+     * @param articleId
+     * @return
+     */
+    @Override
+    public String getArticleContentHtml(Integer articleId) {
+        String key = "article" + articleId;
+        return cache.hget(key, WebConst.ARTICLE);
+    }
+
+    /**
+     * 向缓存中放入文章html格式内容
+     *
+     * @param articleId
+     * @param contentHtml
+     * @return
+     */
+    @Override
+    public void putArticleContentHtml(Integer articleId, String contentHtml) {
+        String key = "article" + articleId;
+        cache.hset(key, WebConst.ARTICLE, contentHtml);
     }
 }

@@ -57,6 +57,13 @@ public class Type implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    public Type(){}
+
+    public Type(String name, String type){
+        this.name = name;
+        this.type = type;
+    }
+
     /**
      * 获取自增主键
      *

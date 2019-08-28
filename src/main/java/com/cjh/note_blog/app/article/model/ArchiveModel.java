@@ -1,4 +1,4 @@
-package com.cjh.note_blog.pojo.VO;
+package com.cjh.note_blog.app.article.model;
 
 import com.cjh.note_blog.pojo.DO.Article;
 
@@ -10,7 +10,7 @@ import java.util.List;
  * @author ChangJiahong
  * @date 2019/8/14
  */
-public class ArchiveVO {
+public class ArchiveModel {
 
     /**
      * 归档日期

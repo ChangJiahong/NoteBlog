@@ -1,7 +1,9 @@
 package com.cjh.note_blog.app.article.service.impl;
 
+import com.cjh.note_blog.app.article.model.ArticleModel;
 import com.cjh.note_blog.app.article_type_rela.service.IArticleTypeRelaService;
 import com.cjh.note_blog.app.cache.service.ICacheService;
+import com.cjh.note_blog.conf.WebConfig;
 import com.cjh.note_blog.constant.StatusCode;
 import com.cjh.note_blog.constant.Table;
 import com.cjh.note_blog.constant.WebConst;
@@ -11,8 +13,9 @@ import com.cjh.note_blog.mapper.ArticleMapper;
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.Article;
 import com.cjh.note_blog.app.article.service.IArticleService;
-import com.cjh.note_blog.pojo.VO.ArchiveVO;
+import com.cjh.note_blog.app.article.model.ArchiveModel;
 import com.cjh.note_blog.utils.DateUtils;
+import com.cjh.note_blog.utils.MD5;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.apache.commons.lang3.StringUtils;
@@ -21,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -43,6 +47,9 @@ public class ArticleServiceImpl implements IArticleService {
     @Autowired
     private IArticleTypeRelaService relaService;
 
+    @Autowired
+    private WebConfig webConfig;
+
     /**
      * 获取文章集合
      * 当分类为空时，默认查询全部
@@ -54,8 +61,8 @@ public class ArticleServiceImpl implements IArticleService {
      * @return 统一返回对象
      */
     @Override
-    public Result<PageInfo<Article>> getArticles(String type, String typeName,
-                                                 int page, int size) {
+    public Result<PageInfo<ArticleModel>> getArticles(String type, String typeName,
+                                                      int page, int size) {
 
         page = page < 0 || page > WebConst.MAX_PAGE ? 1 : page;
 
@@ -68,8 +75,10 @@ public class ArticleServiceImpl implements IArticleService {
             return Result.fail(StatusCode.DataNotFound);
         }
         // 转换文章访问量
-        conversionArticles(articleList);
-        PageInfo<Article> pageInfo = new PageInfo<>(articleList);
+        List<ArticleModel> articleModels = conversionArticles(articleList);
+
+
+        PageInfo<ArticleModel> pageInfo = new PageInfo<>(articleModels);
         return Result.ok(pageInfo);
     }
 
@@ -81,24 +90,24 @@ public class ArticleServiceImpl implements IArticleService {
      * @return 统一返回对象
      */
     @Override
-    public Result<PageInfo<ArchiveVO>> getArchives(int page, int size) {
+    public Result<PageInfo<ArchiveModel>> getArchives(int page, int size) {
         page = page < 0 || page > WebConst.MAX_PAGE ? 1 : page;
 
         size = size < 0 || size > WebConst.MAX_PAGESIZE ? WebConst.DEFAULT_PAGESIZE : size;
 
         PageHelper.startPage(page, size);
-        List<ArchiveVO> archiveVOS = articleMapper.selectArchives();
-        if (null == archiveVOS || archiveVOS.isEmpty()) {
+        List<ArchiveModel> archiveModels = articleMapper.selectArchives();
+        if (null == archiveModels || archiveModels.isEmpty()) {
             // error: 没有找到
             return Result.fail(StatusCode.DataNotFound);
         }
-        archiveVOS.forEach(archiveVO -> {
-            List<Article> articles = articleMapper.selectArticleByDateYm(archiveVO.getDate());
+        archiveModels.forEach(archiveModel -> {
+            List<Article> articles = articleMapper.selectArticleByDateYm(archiveModel.getDate());
             // 转换文章访问量
             conversionArticles(articles);
-            archiveVO.setArticles(articles);
+            archiveModel.setArticles(articles);
         });
-        PageInfo<ArchiveVO> pageInfo = new PageInfo<>(archiveVOS);
+        PageInfo<ArchiveModel> pageInfo = new PageInfo<>(archiveModels);
         return Result.ok(pageInfo);
     }
 
@@ -112,7 +121,7 @@ public class ArticleServiceImpl implements IArticleService {
      * @return 统一返回对象
      */
     @Override
-    public Result<PageInfo<Article>> getArticleList(String author, int page, int size) {
+    public Result<PageInfo<ArticleModel>> getArticleList(String author, int page, int size) {
         if (StringUtils.isBlank(author)) {
             return Result.fail(StatusCode.ParameterIsNull);
         }
@@ -125,8 +134,8 @@ public class ArticleServiceImpl implements IArticleService {
         List<Article> articles = articleMapper.selectArticleByAuthor(author);
 
         // 转换文章访问量
-        conversionArticles(articles);
-        PageInfo<Article> pageInfo = new PageInfo<>(articles);
+        List<ArticleModel> articleModels = conversionArticles(articles);
+        PageInfo<ArticleModel> pageInfo = new PageInfo<>(articleModels);
         return Result.ok(pageInfo);
 
     }
@@ -138,12 +147,53 @@ public class ArticleServiceImpl implements IArticleService {
      *
      * @param articleList 文章集合
      */
-    private void conversionArticles(List<Article> articleList) {
+    private List<ArticleModel> conversionArticles(List<Article> articleList) {
+        List<ArticleModel> articleModels = new ArrayList<>();
         articleList.forEach(article -> {
             // 加上cache里的访问量
             int incrementHits = webCacheService.getHitsFromCache(article.getId());
             article.setHits(article.getHits() + incrementHits);
+            ArticleModel articleModel = new ArticleModel(article);
+            String imgUrl = MD5.Base64Encode(article.getAuthor());
+            articleModel.setAuthorImgUrl(webConfig.root+"/u/"+imgUrl);
+            articleModels.add(articleModel);
         });
+        return articleModels;
+    }
+
+    /**
+     * 转换文章
+     * 将文章集合转换成页面
+     * 统计总文章访问量 = （数据库+缓存） 文章访问量
+     * 文章内容格式md to html
+     *
+     * @param article 文章
+     */
+    private ArticleModel conversionArticle(Article article, String contentType){
+
+        // 获取缓存里的访问量
+        int hits = webCacheService.getHitsFromCache(article.getId());
+
+        // 加上cache里的访问量
+        article.setHits(article.getHits() + hits);
+
+        if (ArticleModel.HTML.equals(contentType)) {
+            String contentHtml = webCacheService.getArticleContentHtml(article.getId());
+            if (StringUtils.isBlank(contentHtml)) {
+                // TODO: md转换成html格式
+                contentHtml = "暂不支持";
+                // 放入缓存
+                webCacheService.putArticleContentHtml(article.getId(), contentHtml);
+            }
+            article.setContent(contentHtml);
+
+        }
+
+        String imgUrl = MD5.Base64Encode(article.getAuthor());
+        ArticleModel articleModel = new ArticleModel(article);
+        articleModel.setAuthorImgUrl(webConfig.root+"/u/"+imgUrl);
+
+        return articleModel;
     }
 
     /**
@@ -153,7 +203,7 @@ public class ArticleServiceImpl implements IArticleService {
      * @return result data type: Acticle
      */
     @Override
-    public Result<Article> getArticleByArtName(String artName) {
+    public Result<ArticleModel> getArticleByArtName(String artName, String contentType) {
 
         if (StringUtils.isBlank(artName)) {
             // error: 参数为空
@@ -166,13 +216,9 @@ public class ArticleServiceImpl implements IArticleService {
             return Result.fail(StatusCode.DataNotFound);
         }
 
-        // 获取缓存里的访问量
-        int hits = webCacheService.getHitsFromCache(article.getId());
+        ArticleModel articleModel = conversionArticle(article, contentType);
 
-        // 加上cache里的访问量
-        article.setHits(article.getHits() + hits);
-
-        return Result.ok(article);
+        return Result.ok(articleModel);
     }
 
     /**
@@ -183,7 +229,7 @@ public class ArticleServiceImpl implements IArticleService {
      * @return 统一返回对象
      */
     @Override
-    public Result<Article> getPreviewArticleByArtNameAndAuthor(String artName, String author) {
+    public Result<ArticleModel> getPreviewArticleByArtNameAndAuthor(String artName, String author, String contentType) {
         if (StringUtils.isBlank(artName) || StringUtils.isBlank(author)) {
             return Result.fail(StatusCode.ParameterIsNull);
         }
@@ -196,13 +242,10 @@ public class ArticleServiceImpl implements IArticleService {
             return Result.fail(StatusCode.DataNotFound);
         }
 
-        // 获取缓存里的访问量
-        int hits = webCacheService.getHitsFromCache(article.getId());
 
-        // 加上cache里的访问量
-        article.setHits(article.getHits() + hits);
+        ArticleModel articleModel = conversionArticle(article, contentType);
 
-        return Result.ok(article);
+        return Result.ok(articleModel);
     }
 
     /**
@@ -214,6 +257,7 @@ public class ArticleServiceImpl implements IArticleService {
     @Transactional(rollbackFor = {ExecutionDatabaseExcepeion.class, StatusCodeException.class})
     @Override
     public Result publish(Article article) {
+
         if (article == null) {
             // error: 参数为空
             return Result.fail(StatusCode.ParameterIsNull);
@@ -244,7 +288,7 @@ public class ArticleServiceImpl implements IArticleService {
         // 描述信息
         // REPAIR: 文章摘要
         if (StringUtils.isBlank(article.getInfo())) {
-            if (article.getContent().length() > 100) {
+            if (article.getContent().length() > WebConst.DEFULT_ARTICLE_INFO_LEN) {
                 article.setInfo(article.getContent().substring(0, 100) + "...");
             } else {
                 article.setInfo(article.getContent());
@@ -261,11 +305,15 @@ public class ArticleServiceImpl implements IArticleService {
         } else {
             // 不修改创建时间
             article.setCreated(null);
-            re = articleMapper.updateByPrimaryKeySelective(article);
+            Example example = new Example(Article.class);
+            Example.Criteria criteria = example.createCriteria();
+            criteria.andEqualTo(Table.Article.id.name(), article.getId());
+            criteria.andEqualTo(Table.Article.author.name(), article.getAuthor());
+            // 文章作者和修改作者相同
+            re = articleMapper.updateByExampleSelective(article, example);
         }
 
         if (re <= 0) {
-
             // error: 执行数据库错误
             throw new ExecutionDatabaseExcepeion("publish文章失败");
         }
@@ -278,10 +326,11 @@ public class ArticleServiceImpl implements IArticleService {
      *
      * @param id     文章id
      * @param status 文章状态
+     * @param author 作者
      * @return 统一返回对象
      */
     @Override
-    public Result updateStatus(Integer id, String status) {
+    public Result updateStatus(Integer id, String status, String author) {
         if (id == null) {
             return Result.fail(StatusCode.ParameterIsNull);
         }
@@ -292,7 +341,13 @@ public class ArticleServiceImpl implements IArticleService {
         Article article = new Article();
         article.setId(id);
         article.setStatus(status);
-        int i = articleMapper.updateByPrimaryKeySelective(article);
+
+        Example example = new Example(Article.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo(Table.Article.id.name(), id);
+        criteria.andEqualTo(Table.Article.author.name(), author);
+        // 文章作者相同
+        int i = articleMapper.updateByExampleSelective(article, example);
         if (i <= 0) {
             return Result.fail(StatusCode.ExecutionDatabaseError, "修改文章状态失败");
         }
@@ -304,7 +359,6 @@ public class ArticleServiceImpl implements IArticleService {
      *
      * @param id
      * @param increment 访问量增量
-     * @return
      */
     @Override
     public Result updateHits(Integer id, int increment) {
@@ -327,16 +381,20 @@ public class ArticleServiceImpl implements IArticleService {
      * 删除文章 byId
      *
      * @param id
-     * @return
+     * @param author 作者
      */
     @Transactional(rollbackFor = ExecutionDatabaseExcepeion.class)
     @Override
-    public Result delArticleById(Integer id) {
+    public Result delArticleById(Integer id, String author) {
         if (id == null) {
             return Result.fail(StatusCode.ParameterIsNull);
         }
+
+        Article article = new Article();
+        article.setId(id);
+        article.setAuthor(author);
         // 删除文章
-        int i = articleMapper.deleteByPrimaryKey(id);
+        int i = articleMapper.delete(article);
         if (i <= 0) {
             throw new ExecutionDatabaseExcepeion("删除文章失败");
         }

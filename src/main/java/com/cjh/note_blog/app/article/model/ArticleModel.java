@@ -1,18 +1,30 @@
-package com.cjh.note_blog.pojo.DO;
+package com.cjh.note_blog.app.article.model;
 
-import com.cjh.note_blog.app.article.model.ArticleModel;
+import com.cjh.note_blog.annotations.Contains;
+import com.cjh.note_blog.pojo.DO.Article;
+import com.cjh.note_blog.pojo.DO.Type;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.StringUtils;
 
+import javax.persistence.Column;
+import javax.persistence.Id;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.persistence.*;
 
 /**
- * 数据对象
- * ：文章表
+ * 文章视图模型
+ *
+ * @author ChangJiahong
+ * @date 2019/8/28
  */
-public class Article implements Serializable {
+public class ArticleModel implements Serializable {
 
     public static final String PUBLISH = "publish";
 
@@ -25,29 +37,43 @@ public class Article implements Serializable {
     /**
      * 文章id
      */
-    @Id
     private Integer id;
 
     /**
      * 文章标题
      */
+    @NotBlank(message = "文章标题不为空")
+    @Size(min = 3, max = 50, message = "文章标题长度在3~50字符之间")
     private String title;
 
     /**
      * 文章别名
      */
+    @Size(min = 1, max = 25, message = "文章别名在1~25字符之间")
+    @Pattern(regexp = "^[A-Za-z]+$", message = "文章别名只能包含字母")
     private String alias;
 
     /**
      * 作者 username
      */
-    @Column(name = "author")
     private String author;
 
     /**
-     * 文章标签、种类
+     * 作者头像
      */
-    private List<Type> types;
+    private String authorImgUrl;
+
+    /**
+     * 标签 逗号间隔
+     */
+    @Valid
+    private String tags;
+
+    /**
+     * 种类 逗号间隔
+     */
+    @Valid
+    private String categorys;
 
     /**
      * 描述信息
@@ -57,50 +83,64 @@ public class Article implements Serializable {
     /**
      * 点击数
      */
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Integer hits = 0;
 
     /**
      * 最近修改时间
      */
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date modified;
 
     /**
      * 创建时间
      */
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date created;
 
     /**
      * 文章状态
      */
+    @NotBlank(message = "文章状态不为空")
+    @Contains(target = {Article.PUBLISH, Article.DRAFT}, message = "文章status只包含publish, draft")
     private String status;
 
     /**
      * 文章内容
      */
+    @NotBlank(message = "文章内容不能为空")
     private String content;
 
-    private static final long serialVersionUID = 1L;
+    public ArticleModel() {
+    }
 
-    public Article(){}
+    public ArticleModel(Article article) {
+        this.alias = article.getAlias();
+        this.author = article.getAuthor();
+        this.created = article.getCreated();
+        this.modified = article.getModified();
+        this.hits = article.getHits();
+        this.id = article.getId();
+        this.info = article.getInfo();
+        this.status = article.getStatus();
+        this.title = article.getTitle();
+        List<Type> types = article.getTypes();
+        List<String> tags = new ArrayList<>();
+        List<String> categorys = new ArrayList<>();
+        types.forEach(type -> {
+            if (Type.TAG.equals(type.getType())) {
+                tags.add(type.getName());
+            } else if (Type.CATEGORY.equals(type.getType())) {
+                categorys.add(type.getName());
+            }
+        });
 
-    public Article(ArticleModel articleModel){
-        this.alias = articleModel.getAlias();
-        this.author = articleModel.getAuthor();
-        this.id = articleModel.getId();
-        this.info = articleModel.getInfo();
-        this.status = articleModel.getStatus();
-        this.title = articleModel.getTitle();
-        String[] tags = articleModel.getTags().split(",");
-        String[] categorys = articleModel.getCategorys().split(",");
-        List<Type> types = new ArrayList<>();
-        for (String tag : tags) {
-            types.add(new Type(tag, Type.TAG));
-        }
-        for (String category : categorys) {
-            types.add(new Type(category, Type.CATEGORY));
-        }
-        this.types = types;
-        this.content = articleModel.getContent();
+        this.tags = StringUtils.join(tags, ",");
+        this.categorys = StringUtils.join(categorys, ",");
+
+        this.content = article.getContent();
     }
 
     /**
@@ -141,6 +181,7 @@ public class Article implements Serializable {
 
     /**
      * 获取文章别名
+     *
      * @return alias - 文章别名
      */
     public String getAlias() {
@@ -149,6 +190,7 @@ public class Article implements Serializable {
 
     /**
      * 设置文章别名
+     *
      * @param alias 文章别名
      */
     public void setAlias(String alias) {
@@ -263,43 +305,62 @@ public class Article implements Serializable {
         this.status = status == null ? null : status.trim();
     }
 
+    /**
+     * 获取文章内容
+     *
+     * @return content - 文章内容
+     */
     public String getContent() {
         return content;
     }
 
+    /**
+     * 设置文章内容
+     *
+     * @param content 文章内容
+     */
     public void setContent(String content) {
-        this.content = content;
+        this.content = content == null ? null : content.trim();
     }
 
-    /**
-     * 获取文章标签、种类
-     * @return type - 文章分类标签
-     */
-    public List<Type> getTypes() {
-        return types;
+    public String getTags() {
+        return tags;
     }
 
-    /**
-     * 设置文章标签、种类
-     * @param types - 文章分类标签
-     */
-    public void setTypes(List<Type> types) {
-        this.types = types;
+    public void setTags(String tags) {
+        this.tags = tags;
     }
 
-    @Override
-    public String toString() {
-        return "article{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", author=" + author +
-                ", types=" + types +
-                ", info='" + info + '\'' +
-                ", hits=" + hits +
-                ", modified=" + modified +
-                ", created=" + created +
-                ", status='" + status + '\'' +
-                ", content='" + content + '\'' +
-                '}';
+    public String getCategorys() {
+        return categorys;
     }
+
+    public void setCategorys(String categorys) {
+        this.categorys = categorys;
+    }
+
+    public String getAuthorImgUrl() {
+        return authorImgUrl;
+    }
+
+    public void setAuthorImgUrl(String authorImgUrl) {
+        this.authorImgUrl = authorImgUrl;
+    }
+
+    //    /**
+//     * 获取文章标签、种类
+//     * @return type - 文章分类标签
+//     */
+//    public List<Type> getTypes() {
+//        return types;
+//    }
+//
+//    /**
+//     * 设置文章标签、种类
+//     * @param types - 文章分类标签
+//     */
+//    public void setTypes(List<Type> types) {
+//        this.types = types;
+//    }
+
 }

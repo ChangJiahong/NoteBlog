@@ -125,25 +125,15 @@ public class RestResponse<T> {
         return new RestResponse(statusCode.code(),statusCode.msgCN());
     }
 
-    /**
-     * [失败] 返回数据 状态码默认 fail
-     * @param data
-     * @param <T>
-     * @return
-     */
-    public static <T> RestResponse<T> fail(T data) {
-        return fail(StatusCode.FAIL, data);
-    }
 
     /**
      * [失败] 返回状态码 和 数据
      * @param statusCode
-     * @param data
-     * @param <T>
+     * @param msg 错误信息
      * @return
      */
-    public static <T> RestResponse<T> fail(StatusCode statusCode, T data) {
-        return new RestResponse<T>(statusCode.code(), statusCode.msgCN(), data);
+    public static  RestResponse fail(StatusCode statusCode, String msg) {
+        return new RestResponse(statusCode.code(), msg);
     }
 
     /**

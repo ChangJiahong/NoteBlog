@@ -77,7 +77,7 @@ public class AccountController extends BaseController {
         User user = webCacheService.getUserFromCache(name);
 
         if (user != null) {
-            if (!user.getPassword().equals(MD5.encode(password))) {
+            if (!user.getPassword().equals(MD5.MD5Encode(password))) {
                 // 密码错误
                 return RestResponse.fail(StatusCode.PasswordMistake);
             }

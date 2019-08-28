@@ -1,5 +1,6 @@
 package com.cjh.note_blog.app.article.controller;
 
+import com.cjh.note_blog.app.article.model.ArticleModel;
 import com.cjh.note_blog.app.article.service.IArticleService;
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.utils.GsonUtils;
@@ -23,7 +24,7 @@ public class Test {
     IArticleService articleService;
 
     public void test(){
-        Result result = articleService.getArticleByArtName("1");
+        Result result = articleService.getArticleByArtName("1", ArticleModel.MD);
         System.out.println(GsonUtils.toJsonString(result.getData()));
     }
 }

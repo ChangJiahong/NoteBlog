@@ -23,7 +23,7 @@ public class MD5Test {
     @Test
     public void encode(){
         String source = "123456";
-        String res = MD5.encode(source);
+        String res = MD5.MD5Encode(source);
         System.out.println(res);
     }
 }

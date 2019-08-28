@@ -1,14 +1,16 @@
 package com.cjh.note_blog.app.article.controller;
 
+import com.cjh.note_blog.annotations.AllowHeaders;
 import com.cjh.note_blog.annotations.Contains;
 import com.cjh.note_blog.annotations.PassToken;
 import com.cjh.note_blog.annotations.UserLoginToken;
+import com.cjh.note_blog.app.article.model.ArticleModel;
 import com.cjh.note_blog.constant.StatusCode;
 import com.cjh.note_blog.controller.BaseController;
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.Article;
 import com.cjh.note_blog.pojo.DO.User;
-import com.cjh.note_blog.pojo.VO.ArchiveVO;
+import com.cjh.note_blog.app.article.model.ArchiveModel;
 import com.cjh.note_blog.pojo.VO.RestResponse;
 import com.cjh.note_blog.app.article.service.IArticleService;
 import com.github.pagehelper.PageInfo;
@@ -26,6 +28,7 @@ import javax.validation.Valid;
 /**
  * ：
  * 文章管理
+ *
  * @author ChangJiahong
  * @date 2019/7/17
  */
@@ -39,7 +42,7 @@ public class ArticleController extends BaseController {
     private static final Logger LOGGER = LoggerFactory.getLogger(ArticleController.class);
 
     @Autowired
-    private IArticleService articleService ;
+    private IArticleService articleService;
 
     /**
      * 【公共方法】【免验证】
@@ -47,9 +50,9 @@ public class ArticleController extends BaseController {
      * 当分类为空时，默认查询全部
      *
      * @param typeName - 分类标签
-     * @param type - tag or category ; 是分类还是标签
-     * @param page 页码
-     * @param size 单页大小
+     * @param type     - tag or category ; 是分类还是标签
+     * @param page     页码
+     * @param size     单页大小
      * @return 统一返回对象
      */
     @ApiOperation(value = "获取文章集合", notes = "获取文章集合, 可根据分类标签获取(tag or category.)。\n当分类为空时，默认查询全部")
@@ -62,17 +65,18 @@ public class ArticleController extends BaseController {
     @PassToken
     @GetMapping({"", "/"})
     public RestResponse getArticles(@RequestParam(required = false)
-                                          String type,
-                                          @RequestParam(required = false)
-                                          String typeName,
-                                          @RequestParam(required = false, defaultValue = "1")
-                                          Integer page,
-                                          @RequestParam(required = false, defaultValue = "12")
-                                          Integer size) {
+                                            String type,
+                                    @RequestParam(required = false)
+                                            String typeName,
+                                    @RequestParam(required = false, defaultValue = "1")
+                                            Integer page,
+                                    @RequestParam(required = false, defaultValue = "12")
+                                            Integer size) {
 
-        Result<PageInfo<Article>> listResult = articleService.getArticles(type, typeName, page, size);
 
-        if (!listResult.isSuccess()){
+        Result<PageInfo<ArticleModel>> listResult = articleService.getArticles(type, typeName, page, size);
+
+        if (!listResult.isSuccess()) {
             return RestResponse.fail(listResult);
         }
 
@@ -84,18 +88,21 @@ public class ArticleController extends BaseController {
      * 根据文章id|别名 获取文章信息
      *
      * @param artName 文章id或者别名
-     * @return
      */
-    @ApiOperation(value="获取单个已发布文章", notes="获取单个已发布文章详细内容")
+    @ApiOperation(value = "获取单个已发布文章", notes = "获取单个已发布文章详细内容")
     @ApiImplicitParams({
+            @ApiImplicitParam(name = "article-type", value = "文章内容格式md html", dataType = "string", paramType = "header"),
             @ApiImplicitParam(name = "artName", value = "文章id或者别名", dataType = "string", paramType = "path"),
-     })
+    })
+    @AllowHeaders({"article-type"})
     @PassToken
     @GetMapping("/{artName}")
-    public RestResponse getArticle(@PathVariable String artName){
+    public RestResponse getArticle(@PathVariable String artName,
+                                   @RequestHeader(value = "article-type", defaultValue = "md") String contentType) {
 
-        Result<Article> result = articleService.getArticleByArtName(artName);
-        if (!result.isSuccess()){
+
+        Result<ArticleModel> result = articleService.getArticleByArtName(artName, contentType);
+        if (!result.isSuccess()) {
             return RestResponse.fail(result);
         }
         // 请求成功，返回文章信息
@@ -118,11 +125,11 @@ public class ArticleController extends BaseController {
     @PassToken
     @GetMapping("/archives")
     public RestResponse getArchive(@RequestParam(required = false, defaultValue = "1")
-                                               Integer page,
+                                           Integer page,
                                    @RequestParam(required = false, defaultValue = "12")
-                                               Integer size) {
-        Result<PageInfo<ArchiveVO>> result = articleService.getArchives(page, size);
-        if (!result.isSuccess()){
+                                           Integer size) {
+        Result<PageInfo<ArchiveModel>> result = articleService.getArchives(page, size);
+        if (!result.isSuccess()) {
             return RestResponse.fail(result);
         }
         return RestResponse.ok(result);
@@ -133,8 +140,8 @@ public class ArticleController extends BaseController {
      * 【个人用户权限】
      * 获取该用户所有文章列表
      *
-     * @param page 页码
-     * @param size 大小
+     * @param page    页码
+     * @param size    大小
      * @param request 请求对象
      * @return 统一返回对象
      */
@@ -145,12 +152,12 @@ public class ArticleController extends BaseController {
     })
     @GetMapping("/list")
     public RestResponse getArticleList(@RequestParam(required = false, defaultValue = "1")
-                                       Integer page,
+                                               Integer page,
                                        @RequestParam(required = false, defaultValue = "12")
-                                       Integer size,
+                                               Integer size,
                                        HttpServletRequest request) {
         User user = getUser(request);
-        Result result = articleService.getArticleList(user.getUsername(), page, size);
+        Result<PageInfo<ArticleModel>> result = articleService.getArticleList(user.getUsername(), page, size);
         if (!result.isSuccess()) {
             return RestResponse.fail(result);
         }
@@ -166,17 +173,19 @@ public class ArticleController extends BaseController {
      * @param request 请求对象
      * @return 统一返回对象
      */
-    @ApiOperation(value="查询个人文章", notes="获取浏览当前用户的文章详细内容，包括未发布的，需登录")
+    @ApiOperation(value = "查询个人文章", notes = "获取浏览当前用户的文章详细内容，包括未发布的，需登录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "token", value = "身份令牌", dataType = "string", paramType = "header"),
+            @ApiImplicitParam(name = "article-type", value = "文章内容格式md html", dataType = "string", paramType = "header"),
             @ApiImplicitParam(name = "artName", value = "文章id或者别名", dataType = "string", paramType = "path"),
     })
     @GetMapping("/pre/{artName}")
-    public RestResponse preview(@PathVariable String artName, HttpServletRequest request){
+    public RestResponse preview(@PathVariable String artName, HttpServletRequest request,
+                                @RequestHeader(value = "article-type", defaultValue = "md") String contentType) {
 
         User user = getUser(request);
         String author = user.getUsername();
-        Result<Article> result = articleService.getPreviewArticleByArtNameAndAuthor(artName, author);
+        Result<ArticleModel> result = articleService.getPreviewArticleByArtNameAndAuthor(artName, author, contentType);
         if (!result.isSuccess()) {
             return RestResponse.fail(result);
         }
@@ -188,39 +197,41 @@ public class ArticleController extends BaseController {
      * 【个人用户权限】
      * 发布文章|保存
      *
-     * @param article 文章对象
+     * @param articleModel 文章对象
      * @param request 请求对象
      * @return 统一返回对象
      */
-    @ApiOperation(value="发布/保存文章", notes="发布或保存文章，如果有id则保存，没有则新建")
+    @ApiOperation(value = "发布/保存文章", notes = "发布或保存文章，如果有id则保存，没有则新建")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "token", value = "身份令牌", dataType = "string", paramType = "header"),
-            @ApiImplicitParam(name = "article", value = "文章实体", dataType = "article", paramType = "body")
+            @ApiImplicitParam(name = "articleModel", value = "文章实体", dataType = "articleModel", paramType = "body")
     })
-    @PostMapping({"","/"})
-    public RestResponse publish(@Valid @RequestBody Article article,
+    @PostMapping({"", "/"})
+    public RestResponse publish(@Valid @RequestBody ArticleModel articleModel,
                                 Errors errors,
-                                HttpServletRequest request){
+                                HttpServletRequest request) {
 
-        User user  = getUser(request);
+        User user = getUser(request);
 
-        if (errors.hasErrors()){
+
+        if (errors.hasErrors()) {
             LOGGER.info("文章参数错误！");
             // error: 文章参数为空
             return RestResponse.fail(StatusCode.ParameterVerificationError, errors.getFieldError().getDefaultMessage());
         }
 
-        // TODO: 非文章作者不能修改
         // 设置作者id 作者username
-        article.setAuthor(user.getUsername());
+        articleModel.setAuthor(user.getUsername());
+
+        Article article = new Article(articleModel);
 
         Result result = articleService.publish(article);
 
-        if (result.isSuccess()){
-            LOGGER.info("["+user.getEmail()+"]：发布文章成功！");
+        if (result.isSuccess()) {
+            LOGGER.info("[" + user.getEmail() + "]：发布文章成功！");
             return RestResponse.ok();
         }
-        LOGGER.info("["+user.getEmail()+"]：发布文章错误！错误信息："+result.getMsg());
+        LOGGER.info("[" + user.getEmail() + "]：发布文章错误！错误信息：" + result.getMsg());
         return RestResponse.fail(result);
 
     }
@@ -231,7 +242,7 @@ public class ArticleController extends BaseController {
      * 【个人用户权限】
      * 文章状态管理
      *
-     * @param id 文章id
+     * @param id     文章id
      * @param status 文章状态（publis|draft）
      * @return 统一返回对象
      */
@@ -244,12 +255,14 @@ public class ArticleController extends BaseController {
     public RestResponse articleEnable(@PathVariable(value = "id") Integer id,
                                       @Contains(target = {Article.PUBLISH, Article.DRAFT},
                                               message = "请求参数不正确")
-                                      @PathVariable(value = "status") String status) {
+                                      @PathVariable(value = "status") String status,
+                                      HttpServletRequest request) {
 
-        // TODO: 非文章作者不能修改
-        Result result = articleService.updateStatus(id, status);
+        User user = getUser(request);
+        String author = user.getUsername();
+        Result result = articleService.updateStatus(id, status, author);
 
-        if (!result.isSuccess()){
+        if (!result.isSuccess()) {
             return RestResponse.fail(result);
         }
 
@@ -264,25 +277,25 @@ public class ArticleController extends BaseController {
      * @param id 文章id
      * @return
      */
-    @ApiOperation(value="删除文章", notes="删除文章通过文章id")
+    @ApiOperation(value = "删除文章", notes = "删除文章通过文章id")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "token", value = "身份令牌", dataType = "string", paramType = "header"),
             @ApiImplicitParam(name = "id", value = "文章id", dataType = "int", paramType = "path")
     })
     @DeleteMapping("/{id}")
-    public RestResponse delArticleById(@PathVariable Integer id){
+    public RestResponse delArticleById(@PathVariable Integer id, HttpServletRequest request) {
 
-        // TODO: 非文章作者不能删除
-        Result result = articleService.delArticleById(id);
+        User user = getUser(request);
+        String author = user.getUsername();
 
-        if (result.isSuccess()){
+        Result result = articleService.delArticleById(id, author);
+
+        if (result.isSuccess()) {
             return RestResponse.ok(result);
         }
 
         return RestResponse.fail(result);
     }
-
-
 
 
 }

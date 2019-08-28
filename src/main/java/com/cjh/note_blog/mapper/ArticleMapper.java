@@ -1,7 +1,7 @@
 package com.cjh.note_blog.mapper;
 
 import com.cjh.note_blog.pojo.DO.Article;
-import com.cjh.note_blog.pojo.VO.ArchiveVO;
+import com.cjh.note_blog.app.article.model.ArchiveModel;
 import com.cjh.note_blog.utils.MyMapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -42,7 +42,7 @@ public interface ArticleMapper extends MyMapper<Article> {
      * 查询归档
      * @return 归档集合
      */
-    List<ArchiveVO> selectArchives();
+    List<ArchiveModel> selectArchives();
 
     /**
      * 根据日期查询文章
