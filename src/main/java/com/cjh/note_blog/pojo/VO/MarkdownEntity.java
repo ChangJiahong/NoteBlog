@@ -30,7 +30,7 @@ public class MarkdownEntity {
 
     @Override
     public String toString() {
-        return css + "\n<div " + parseDiv() + ">\n" + html + "\n</div>";
+        return  html;
     }
 
 

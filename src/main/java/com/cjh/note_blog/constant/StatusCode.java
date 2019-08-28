@@ -14,7 +14,7 @@ public enum StatusCode {
     /**
      * 账户已登录
      */
-    TheAccountHasBeenLoggedIn(201, "Your Account Is Logged In ,No login is required！", "你的账户已登录!不用重新登录！"),
+    TheAccountHasBeenLoggedIn(201, "Your account Is Logged In ,No login is required！", "你的账户已登录!不用重新登录！"),
     /**
      * 注销成功
      */
@@ -47,7 +47,7 @@ public enum StatusCode {
     /**
      * 参数类型错误
      */
-    ParameterTypeError(10003, "Parameter Type Error", "参数类型错误"),
+    ParameterTypeError(10003, "Parameter type Error", "参数类型错误"),
     /**
      * 参数缺失
      */
@@ -66,7 +66,7 @@ public enum StatusCode {
     /**
      * 账号不存在或密码错误
      */
-    NoAccountOrPasswordError(20002, "No Account Or Password Error", "账号不存在或密码错误"),
+    NoAccountOrPasswordError(20002, "No account Or Password Error", "账号不存在或密码错误"),
     /**
      * 账号已被禁用
      */
@@ -86,7 +86,7 @@ public enum StatusCode {
     /**
      * 密码错误
      */
-    PasswordMistake(20006, "Password Mistake", "密码错误"),
+    PasswordMistake(20007, "Password Mistake", "密码错误"),
 
     /* 业务错误：30001-39999 */
 
@@ -114,7 +114,7 @@ public enum StatusCode {
     /**
      * 文章种类不存在
      */
-    CategoryNotExist(30006, "Article Category Not Exist", "文章种类不存在"),
+    CategoryNotExist(30006, "article Category Not Exist", "文章种类不存在"),
 
 
     /* 系统错误：40001-49999 */

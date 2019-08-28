@@ -31,7 +31,7 @@ public class GsonUtilsTest {
                 "    }";
 
         /**
-         * ObjectMapper支持从byte[]、File、InputStream、字符串等数据的JSON反序列化。
+         * ObjectMapper支持从byte[]、file、InputStream、字符串等数据的JSON反序列化。
          */
         ObjectMapper mapper = new ObjectMapper();
         User user = mapper.readValue(json, User.class);

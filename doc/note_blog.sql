@@ -2,14 +2,14 @@
  Navicat Premium Data Transfer
 
  Source Server         : MySQL
- Source Server Type    : MySQL
+ Source Server type    : MySQL
  Source Server Version : 80011
  Source Host           : localhost:3306
  Source Schema         : note_blog
 
- Target Server Type    : MySQL
+ Target Server type    : MySQL
  Target Server Version : 80011
- File Encoding         : 65001
+ file Encoding         : 65001
 
  Date: 21/08/2019 12:32:56
 */

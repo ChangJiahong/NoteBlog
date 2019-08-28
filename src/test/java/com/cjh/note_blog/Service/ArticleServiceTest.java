@@ -1,6 +1,6 @@
 package com.cjh.note_blog.Service;
 
-import com.cjh.note_blog.CSD.Article.service.IArticleService;
+import com.cjh.note_blog.app.article.service.IArticleService;
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.Article;
 import com.cjh.note_blog.utils.GsonUtils;

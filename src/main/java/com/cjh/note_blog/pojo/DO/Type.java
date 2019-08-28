@@ -150,7 +150,7 @@ public class Type implements Serializable {
 
     @Override
     public String toString() {
-        return "Type{" +
+        return "type{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", type='" + type + '\'' +

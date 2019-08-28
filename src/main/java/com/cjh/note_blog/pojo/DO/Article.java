@@ -293,7 +293,7 @@ public class Article implements Serializable {
 
     @Override
     public String toString() {
-        return "Article{" +
+        return "article{" +
                 "id=" + id +
                 ", title='" + title + '\'' +
                 ", author=" + author +

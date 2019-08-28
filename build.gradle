@@ -1,9 +1,22 @@
+buildscript {
+    repositories {
+        mavenLocal()
+    }
+    dependencies {
+        classpath('org.springframework.boot:spring-boot-gradle-plugin')
+    }
+}
 plugins {
     id 'org.springframework.boot' version '2.1.6.RELEASE'
     id 'java'
 }
 
 apply plugin: 'io.spring.dependency-management'
+apply plugin: 'java'
+
+jar {
+    baseName='NoteBlog'
+}
 
 group = 'com.cjh'
 version = '0.0.1-dev'

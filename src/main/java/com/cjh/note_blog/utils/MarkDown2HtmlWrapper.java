@@ -38,7 +38,7 @@ public class MarkDown2HtmlWrapper {
     public static MarkdownEntity ofContent(String content) {
         String html = parse(content);
         MarkdownEntity entity = new MarkdownEntity();
-        entity.setCss(MD_CSS);
+//        entity.setCss(MD_CSS);
         entity.setHtml(html);
         entity.addDivStyle("class", "markdown-body ");
         return entity;
