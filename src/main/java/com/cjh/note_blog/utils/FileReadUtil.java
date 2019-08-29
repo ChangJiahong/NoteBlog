@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class FileReadUtil {
 
 
-    public static String readAll(String s) throws UnsupportedEncodingException {
+    public static String readAll(String s) {
         InputStream stream = FileReadUtil.class.getClassLoader().getResourceAsStream(s);
         assert stream != null;
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
@@ -31,4 +31,7 @@ public class FileReadUtil {
 
         return content.toString();
     }
+
+
+
 }

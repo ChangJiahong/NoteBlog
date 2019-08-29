@@ -16,6 +16,7 @@ import com.cjh.note_blog.app.article.service.IArticleService;
 import com.cjh.note_blog.app.article.model.ArchiveModel;
 import com.cjh.note_blog.utils.DateUtils;
 import com.cjh.note_blog.utils.MD5;
+import com.cjh.note_blog.utils.MdParser;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.apache.commons.lang3.StringUtils;
@@ -49,6 +50,9 @@ public class ArticleServiceImpl implements IArticleService {
 
     @Autowired
     private WebConfig webConfig;
+
+    @Autowired
+    private MdParser mdParser;
 
     /**
      * 获取文章集合
@@ -155,7 +159,7 @@ public class ArticleServiceImpl implements IArticleService {
             article.setHits(article.getHits() + incrementHits);
             ArticleModel articleModel = new ArticleModel(article);
             String imgUrl = MD5.Base64Encode(article.getAuthor());
-            articleModel.setAuthorImgUrl(webConfig.root+"/u/"+imgUrl);
+            articleModel.setAuthorImgUrl(webConfig.root + "/u/" + imgUrl);
             articleModels.add(articleModel);
         });
         return articleModels;
@@ -169,7 +173,7 @@ public class ArticleServiceImpl implements IArticleService {
      *
      * @param article 文章
      */
-    private ArticleModel conversionArticle(Article article, String contentType){
+    private ArticleModel conversionArticle(Article article, String contentType) {
 
         // 获取缓存里的访问量
         int hits = webCacheService.getHitsFromCache(article.getId());
@@ -180,8 +184,7 @@ public class ArticleServiceImpl implements IArticleService {
         if (ArticleModel.HTML.equals(contentType)) {
             String contentHtml = webCacheService.getArticleContentHtml(article.getId());
             if (StringUtils.isBlank(contentHtml)) {
-                // TODO: md转换成html格式
-                contentHtml = "暂不支持";
+                contentHtml = mdParser.md2html(article.getContent());
                 // 放入缓存
                 webCacheService.putArticleContentHtml(article.getId(), contentHtml);
             }
@@ -191,7 +194,7 @@ public class ArticleServiceImpl implements IArticleService {
 
         String imgUrl = MD5.Base64Encode(article.getAuthor());
         ArticleModel articleModel = new ArticleModel(article);
-        articleModel.setAuthorImgUrl(webConfig.root+"/u/"+imgUrl);
+        articleModel.setAuthorImgUrl(webConfig.root + "/u/" + imgUrl);
 
         return articleModel;
     }

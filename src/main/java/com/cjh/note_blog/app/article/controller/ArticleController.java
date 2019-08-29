@@ -98,6 +98,8 @@ public class ArticleController extends BaseController {
     @PassToken
     @GetMapping("/{artName}")
     public RestResponse getArticle(@PathVariable String artName,
+                                   // 点击率
+                                   HttpServletRequest request,
                                    @RequestHeader(value = "article-type", defaultValue = "md") String contentType) {
 
 

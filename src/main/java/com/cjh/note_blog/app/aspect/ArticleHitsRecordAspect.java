@@ -1,5 +1,6 @@
 package com.cjh.note_blog.app.aspect;
 
+import com.cjh.note_blog.app.article.model.ArticleModel;
 import com.cjh.note_blog.app.article.service.IArticleService;
 import com.cjh.note_blog.app.cache.service.ICacheService;
 import com.cjh.note_blog.constant.WebConst;
@@ -20,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * :
  * 文章点击数计算 切面
+ *
  * @author ChangJiahong
  * @date 2019/8/7
  */
@@ -36,32 +38,33 @@ public class ArticleHitsRecordAspect {
     private IArticleService articleService;
 
     @Pointcut("execution(* com.cjh.note_blog.app.article.controller.ArticleController" +
-            ".getArticle(java.lang.String,javax.servlet.http.HttpServletRequest)) && args(artName, request)")
-    public void performance(String artName, HttpServletRequest request){}
+            ".getArticle(java.lang.String,javax.servlet.http.HttpServletRequest,java.lang.String)) && args(artName,request, contentType)")
+    public void performance(String artName, HttpServletRequest request, String contentType) {
+    }
 
-    @AfterReturning(value = "performance(artName, request)", returning = "restResponse")
-    public void afterGetArticle(String artName, HttpServletRequest request, RestResponse<Article> restResponse) {
+    @AfterReturning(value = "performance(artName,request,contentType)", returning = "restResponse")
+    public void afterGetArticle(String artName, HttpServletRequest request, String contentType, RestResponse<ArticleModel> restResponse) {
 
-        if (!restResponse.isOK()){
+        if (!restResponse.isOK()) {
             return;
         }
 
-        Article article = restResponse.getData();
+        ArticleModel articleModel = restResponse.getData();
 
-        if (checkHitsFrequency(request, article.getId())) {
+        if (checkHitsFrequency(request, articleModel.getId())) {
             // 最近访问过，不算点击率
             return;
         }
 
         // 点击数增量
-        int incrementHits = webCacheService.getHitsFromCache(article.getId());
+        int incrementHits = webCacheService.getHitsFromCache(articleModel.getId());
 
         // 访问量+1
         incrementHits++;
 
         if (incrementHits >= WebConst.HIT_EXCEED) {
             // 大于等于临界值， 保存
-            Result result = articleService.updateHits(article.getId(), incrementHits);
+            Result result = articleService.updateHits(articleModel.getId(), incrementHits);
             if (result.isSuccess()) {
                 // 成功， 缓存清零
                 incrementHits = 0;
@@ -69,7 +72,7 @@ public class ArticleHitsRecordAspect {
         }
         // 成功 存入0
         // 失败 存在之前的缓存中
-        webCacheService.putHitsToCache(article.getId(), incrementHits);
+        webCacheService.putHitsToCache(articleModel.getId(), incrementHits);
 
     }
 

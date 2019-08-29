@@ -2,6 +2,7 @@ package com.cjh.note_blog.Utlis;
 
 import com.cjh.note_blog.utils.MarkDown2HtmlWrapper;
 import com.cjh.note_blog.pojo.VO.MarkdownEntity;
+import com.cjh.note_blog.utils.MdParser;
 import com.vladsch.flexmark.Extension;
 import com.vladsch.flexmark.ast.Node;
 import com.vladsch.flexmark.ext.tables.TablesExtension;
@@ -27,7 +28,7 @@ public class MdTest {
     @Test
     public void md2Html() throws UnsupportedEncodingException {
         // 从文件中读取markdown内容
-        InputStream stream = this.getClass().getClassLoader().getResourceAsStream("unity.md");
+        InputStream stream = this.getClass().getClassLoader().getResourceAsStream("README.md");
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "utf-8"));
 
         List<String> list = reader.lines().collect(Collectors.toList());
@@ -56,7 +57,7 @@ public class MdTest {
 
     @Test
     public void md2Html2() throws UnsupportedEncodingException {
-        InputStream stream = this.getClass().getClassLoader().getResourceAsStream("test.md");
+        InputStream stream = this.getClass().getClassLoader().getResourceAsStream("README.md");
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "utf-8"));
 
         List<String> list = reader.lines().collect(Collectors.toList());
@@ -89,5 +90,10 @@ public class MdTest {
         System.out.println(html.toString());
     }
 
+    @Test
+    public void md2html4(){
+        String html = MdParser.getInstance().md2html("# 搜索 \n### 手动换行符");
+        System.out.println(html);
+    }
 
 }
