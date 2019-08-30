@@ -200,6 +200,12 @@ public enum StatusCode {
      * 登录状态失效
      */
     LogonStateFailure(80004, "Logon State Failure", "登录状态失效"),
+
+    /* 安全  */
+    /**
+     * 不安全的链接
+     */
+    UnsafeLink(90001, "UnsafeLink", "不安全的链接");
     ;
 
 

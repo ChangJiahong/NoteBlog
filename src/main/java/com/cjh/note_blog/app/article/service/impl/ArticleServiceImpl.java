@@ -28,6 +28,7 @@ import tk.mybatis.mapper.entity.Example;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 
 /**
  * ：
@@ -160,6 +161,7 @@ public class ArticleServiceImpl implements IArticleService {
             ArticleModel articleModel = new ArticleModel(article);
             String imgUrl = MD5.Base64Encode(article.getAuthor());
             articleModel.setAuthorImgUrl(webConfig.root + "/u/" + imgUrl);
+            articleModel.setFrontCoverImgUrl(webConfig.root + article.getFrontCoverImgUrl());
             articleModels.add(articleModel);
         });
         return articleModels;
@@ -265,6 +267,18 @@ public class ArticleServiceImpl implements IArticleService {
             // error: 参数为空
             return Result.fail(StatusCode.ParameterIsNull);
         }
+        String frontCoverImgUrl = article.getFrontCoverImgUrl();
+        if (StringUtils.isNotBlank(frontCoverImgUrl)) {
+            if (!frontCoverImgUrl.startsWith(webConfig.root)) {
+
+                return Result.fail(StatusCode.UnsafeLink, "封面图片来自不安全的链接");
+            }
+            frontCoverImgUrl = frontCoverImgUrl.substring(webConfig.root.length());
+        } else {
+            int n = new Random().nextInt(19) + 1;
+            frontCoverImgUrl = "/img/" + n + ".jpg";
+        }
+        article.setFrontCoverImgUrl(frontCoverImgUrl);
 
         if (!StringUtils.isBlank(article.getAlias())) {
             // 检查别名是否重复

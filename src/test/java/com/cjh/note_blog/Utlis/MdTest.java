@@ -15,6 +15,7 @@ import org.junit.Test;
 import java.io.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -94,6 +95,25 @@ public class MdTest {
     public void md2html4(){
         String html = MdParser.getInstance().md2html("# 搜索 \n### 手动换行符");
         System.out.println(html);
+    }
+
+    @Test
+    public void sub(){
+
+        String root = "http://www.pythong.top";
+
+        String frontCoverImgUrl = "http://www.hong.top/img/fsd.png";
+        if (frontCoverImgUrl.startsWith(root)) {
+            String s = frontCoverImgUrl.substring(root.length());
+            System.out.println(s);
+        }else {
+            System.out.println("fffffff");
+        }
+
+        for (int i=0;i<20;i++) {
+            int n = new Random().nextInt(19)+1;
+            System.out.println(n);
+        }
     }
 
 }

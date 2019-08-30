@@ -1,7 +1,6 @@
 HELP.md
-.gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
+.gradle/**
+build/**
 !**/src/main/**
 !**/src/test/**
 
@@ -19,7 +18,7 @@ build/
 *.iws
 *.iml
 *.ipr
-out/
+out/**
 
 ### NetBeans ###
 /nbproject/private/
@@ -30,6 +29,11 @@ out/
 
 ### VS Code ###
 .vscode/
-/gradle/
+gradle/**
 src/main/resources/templates/
 !/gradle/
+
+### log ###
+*.log
+*.log.*
+**/META-INF/**

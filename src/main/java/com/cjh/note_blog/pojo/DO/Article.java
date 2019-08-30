@@ -79,6 +79,9 @@ public class Article implements Serializable {
      */
     private String content;
 
+    @Column(name = "front_cover_img_url")
+    private String frontCoverImgUrl;
+
     private static final long serialVersionUID = 1L;
 
     public Article(){}
@@ -101,6 +104,7 @@ public class Article implements Serializable {
         }
         this.types = types;
         this.content = articleModel.getContent();
+        this.frontCoverImgUrl = articleModel.getFrontCoverImgUrl();
     }
 
     /**
@@ -285,6 +289,14 @@ public class Article implements Serializable {
      */
     public void setTypes(List<Type> types) {
         this.types = types;
+    }
+
+    public String getFrontCoverImgUrl() {
+        return frontCoverImgUrl;
+    }
+
+    public void setFrontCoverImgUrl(String frontCoverImgUrl) {
+        this.frontCoverImgUrl = frontCoverImgUrl;
     }
 
     @Override

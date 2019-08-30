@@ -113,6 +113,8 @@ public class ArticleModel implements Serializable {
     @NotBlank(message = "文章内容不能为空")
     private String content;
 
+    private String frontCoverImgUrl;
+
     public ArticleModel() {
     }
 
@@ -345,6 +347,14 @@ public class ArticleModel implements Serializable {
 
     public void setAuthorImgUrl(String authorImgUrl) {
         this.authorImgUrl = authorImgUrl;
+    }
+
+    public String getFrontCoverImgUrl() {
+        return frontCoverImgUrl;
+    }
+
+    public void setFrontCoverImgUrl(String frontCoverImgUrl) {
+        this.frontCoverImgUrl = frontCoverImgUrl;
     }
 
     //    /**

@@ -15,6 +15,7 @@
         <result column="created" property="created" jdbcType="TIMESTAMP"/>
         <result column="status" property="status" jdbcType="CHAR"/>
         <result column="content" property="content" jdbcType="LONGVARCHAR"/>
+        <result column="front_cover_img_url" property="frontCoverImgUrl" jdbcType="VARCHAR" />
 
 
         <collection property="types" javaType="list"
@@ -34,7 +35,8 @@
         a.hits,
         a.modified,
         a.created,
-        a.`status`
+        a.`status`,
+        a.front_cover_img_url
     </sql>
 
     <!--    通过id查询-->
