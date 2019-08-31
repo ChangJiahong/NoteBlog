@@ -204,4 +204,16 @@ public class CacheServiceImpl implements ICacheService {
         String key = "article" + articleId;
         cache.hset(key, WebConst.ARTICLE, contentHtml);
     }
+
+    /**
+     * 清除缓存中文章html格式内容
+     *
+     * @param articleId
+     * @return
+     */
+    @Override
+    public void removeArticleContentHtml(Integer articleId) {
+        String key = "article" + articleId;
+        cache.hdel(key, WebConst.ARTICLE);
+    }
 }

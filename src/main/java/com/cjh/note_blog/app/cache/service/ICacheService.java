@@ -104,4 +104,11 @@ public interface ICacheService {
      */
     void putArticleContentHtml(Integer articleId, String contentHtml);
 
+    /**
+     * 清除缓存中文章html格式内容
+     * @param articleId
+     * @return
+     */
+    void removeArticleContentHtml(Integer articleId);
+
 }

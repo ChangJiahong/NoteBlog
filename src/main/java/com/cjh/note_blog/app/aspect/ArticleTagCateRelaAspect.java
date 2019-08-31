@@ -1,6 +1,7 @@
 package com.cjh.note_blog.app.aspect;
 
 import com.cjh.note_blog.app.article_type_rela.service.IArticleTypeRelaService;
+import com.cjh.note_blog.app.cache.service.ICacheService;
 import com.cjh.note_blog.app.type.service.ITypeService;
 import com.cjh.note_blog.constant.StatusCode;
 import com.cjh.note_blog.exc.StatusCodeException;
@@ -32,6 +33,8 @@ public class ArticleTagCateRelaAspect {
     @Autowired
     private IArticleTypeRelaService typeRelaService;
 
+    @Autowired
+    private ICacheService webCacheService;
 
     @Pointcut("execution(* com.cjh.note_blog.app.article.service.IArticleService" +
             ".publish(com.cjh.note_blog.pojo.DO.Article)) && args(article)")
@@ -112,6 +115,8 @@ public class ArticleTagCateRelaAspect {
                 throw new StatusCodeException(res.getStatusCode(), res.getMsg());
             }
         }
+        // 清除文章缓存
+        webCacheService.removeArticleContentHtml(article.getId());
 
 
     }
