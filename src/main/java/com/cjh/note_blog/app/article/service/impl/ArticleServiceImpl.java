@@ -109,8 +109,8 @@ public class ArticleServiceImpl implements IArticleService {
         archiveModels.forEach(archiveModel -> {
             List<Article> articles = articleMapper.selectArticleByDateYm(archiveModel.getDate());
             // 转换文章访问量
-            conversionArticles(articles);
-            archiveModel.setArticles(articles);
+            List<ArticleModel> archiveModelList = conversionArticles(articles);
+            archiveModel.setArticles(archiveModelList);
         });
         PageInfo<ArchiveModel> pageInfo = new PageInfo<>(archiveModels);
         return Result.ok(pageInfo);

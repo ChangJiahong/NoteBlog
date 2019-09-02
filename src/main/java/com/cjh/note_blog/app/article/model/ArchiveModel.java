@@ -1,6 +1,8 @@
 package com.cjh.note_blog.app.article.model;
 
 import com.cjh.note_blog.pojo.DO.Article;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
@@ -15,6 +17,8 @@ public class ArchiveModel {
     /**
      * 归档日期
      */
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private String date;
 
     /**
@@ -25,7 +29,7 @@ public class ArchiveModel {
     /**
      * 归档内容
      */
-    private List<Article> articles;
+    private List<ArticleModel> articles;
 
     public String getDate() {
         return date;
@@ -43,11 +47,11 @@ public class ArchiveModel {
         this.count = count;
     }
 
-    public List<Article> getArticles() {
+    public List<ArticleModel> getArticles() {
         return articles;
     }
 
-    public void setArticles(List<Article> articles) {
+    public void setArticles(List<ArticleModel> articles) {
         this.articles = articles;
     }
 }
