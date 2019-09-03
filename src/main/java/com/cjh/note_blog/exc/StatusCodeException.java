@@ -18,6 +18,7 @@ public class StatusCodeException extends RuntimeException{
 
     public StatusCodeException(StatusCode statusCode, String msg) {
         super(msg);
+        statusCode.setMsg(msg);
         this.statusCode = statusCode;
     }
 

@@ -81,7 +81,7 @@
         <include refid="param"/>
         from article as a
         left join article_type ac on a.id = ac.aid
-        left join type t on ac.tid = t.id
+        left join `type` t on ac.tid = t.id
         where a.`status` = 'publish'
         <if test="(type != null and type != '') and (typeName != null and typeName != '')">
             and t.name = #{typeName} and t.type = #{type}

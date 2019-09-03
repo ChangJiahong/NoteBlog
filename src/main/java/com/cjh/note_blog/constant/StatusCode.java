@@ -1,5 +1,7 @@
 package com.cjh.note_blog.constant;
 
+import java.io.IOError;
+
 /**
  * ：
  * 状态码定义
@@ -205,7 +207,10 @@ public enum StatusCode {
     /**
      * 不安全的链接
      */
-    UnsafeLink(90001, "UnsafeLink", "不安全的链接");
+    UnsafeLink(90001, "UnsafeLink", "不安全的链接"),
+
+    /* IO */
+    IOError(100001, "IO error","文件IO错误")
     ;
 
 
@@ -215,11 +220,11 @@ public enum StatusCode {
     /**
      * 英文信息
      */
-    private final String msgUS;
+    private String msgUS;
     /**
      * 中文信息
      */
-    private final String msgCN;
+    private String msgCN;
     private final int code;
 
     private StatusCode(int code, String msgUS, String msgCN){
@@ -241,6 +246,10 @@ public enum StatusCode {
 
     public String msgCN() {
         return msgCN;
+    }
+
+    public void setMsg(String msg){
+        this.msgCN = msg;
     }
 
     public int code() {

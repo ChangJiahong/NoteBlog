@@ -1,5 +1,7 @@
 package com.cjh.note_blog.utils;
 
+import java.util.UUID;
+
 /**
  * ：
  * 网站工具类
@@ -9,4 +11,10 @@ package com.cjh.note_blog.utils;
 public class WebUtils {
 
 
+    public static String getUUID(){
+        UUID uuid= UUID.randomUUID();
+        String str = uuid.toString();
+        String uuidStr=str.replace("-", "");
+        return uuidStr;
+    }
 }

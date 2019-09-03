@@ -31,4 +31,11 @@ public abstract class BaseController {
         return null;
     }
 
+    protected String getEmail(HttpServletRequest request){
+        User user = getUser(request);
+        if (user!=null){
+            return user.getEmail();
+        }
+        return null;
+    }
 }

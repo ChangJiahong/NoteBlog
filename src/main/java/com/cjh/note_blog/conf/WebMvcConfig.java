@@ -18,17 +18,21 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Resource
     private BaseInterceptor baseInterceptor;
 
+    @Resource
+    private WebConfig webConfig;
+
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(baseInterceptor)
                 // 排除路径
-                .excludePathPatterns("/error/**","/swagger-resources/**", "/img/**");
+                .excludePathPatterns("/error/**", "/swagger-resources/**", "/img/**");
     }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/file/**").addResourceLocations("file:"+ "D://upload/");
-        registry.addResourceHandler("/u/**").addResourceLocations("file:"+ "D://upload/user/");
+//        registry.addResourceHandler("/file/**").addResourceLocations("file:"+ "D://upload/");
+
+        registry.addResourceHandler(webConfig.userImgUrlPrefix + "/**").addResourceLocations("file:" + webConfig.fileStorageRootPath + webConfig.userImgStoragePrefix +"/");
     }
 }

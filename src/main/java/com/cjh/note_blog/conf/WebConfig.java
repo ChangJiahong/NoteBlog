@@ -15,11 +15,60 @@ public class WebConfig {
 
     public String root;
 
+    /**
+     * 保存的文件根路径
+     */
+    public String fileStorageRootPath;
+
+    /**
+     * 用户图片前缀
+     */
+    public String userImgUrlPrefix;
+
+    /**
+     * 用户图片存储前缀
+     */
+    public String userImgStoragePrefix;
+
+    public String fileStoragePrefix;
+
     public String getRoot() {
         return root;
     }
 
     public void setRoot(String root) {
         this.root = root;
+    }
+
+    public String getFileStorageRootPath() {
+        return fileStorageRootPath;
+    }
+
+    public void setFileStorageRootPath(String fileStorageRootPath) {
+        this.fileStorageRootPath = fileStorageRootPath;
+    }
+
+    public String getUserImgUrlPrefix() {
+        return userImgUrlPrefix;
+    }
+
+    public void setUserImgUrlPrefix(String userImgUrlPrefix) {
+        this.userImgUrlPrefix = userImgUrlPrefix;
+    }
+
+    public String getUserImgStoragePrefix() {
+        return userImgStoragePrefix;
+    }
+
+    public void setUserImgStoragePrefix(String userImgStoragePrefix) {
+        this.userImgStoragePrefix = userImgStoragePrefix;
+    }
+
+    public String getFileStoragePrefix() {
+        return fileStoragePrefix;
+    }
+
+    public void setFileStoragePrefix(String fileStoragePrefix) {
+        this.fileStoragePrefix = fileStoragePrefix;
     }
 }
