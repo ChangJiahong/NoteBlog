@@ -23,4 +23,12 @@ public abstract class BaseController {
         return (User) request.getAttribute(WebConst.USER_LOGIN);
     }
 
+    protected String getUsername(HttpServletRequest request){
+        User user = getUser(request);
+        if (user!=null){
+            return user.getUsername();
+        }
+        return null;
+    }
+
 }

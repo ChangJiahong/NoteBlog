@@ -115,6 +115,10 @@ public class ArticleModel implements Serializable {
 
     private String frontCoverImgUrl;
 
+    private Integer likes;
+
+    private Boolean isLiked;
+
     public ArticleModel() {
     }
 
@@ -355,6 +359,22 @@ public class ArticleModel implements Serializable {
 
     public void setFrontCoverImgUrl(String frontCoverImgUrl) {
         this.frontCoverImgUrl = frontCoverImgUrl;
+    }
+
+    public Integer getLikes() {
+        return likes;
+    }
+
+    public void setLikes(Integer likes) {
+        this.likes = likes;
+    }
+
+    public Boolean getLiked() {
+        return isLiked;
+    }
+
+    public void setLiked(Boolean liked) {
+        isLiked = liked;
     }
 
     //    /**

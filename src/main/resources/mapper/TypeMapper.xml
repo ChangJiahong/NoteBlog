@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.cjh.note_blog.mapper.TypeMapper" >
-  <resultMap id="BaseResultMap" type="com.cjh.note_blog.pojo.DO.Type" >
-    <!--
-      WARNING - @mbg.generated
-    -->
-    <id column="tId" property="id" jdbcType="INTEGER" />
-    <result column="tName" property="name" jdbcType="VARCHAR" />
-    <result column="tType" property="type" jdbcType="VARCHAR" />
-    <result column="tCreated" property="created" jdbcType="TIMESTAMP" />
-  </resultMap>
+<mapper namespace="com.cjh.note_blog.mapper.TypeMapper">
+    <resultMap id="BaseResultMap" type="com.cjh.note_blog.pojo.DO.Type">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="tId" property="id" jdbcType="INTEGER"/>
+        <result column="tName" property="name" jdbcType="VARCHAR"/>
+        <result column="tType" property="type" jdbcType="VARCHAR"/>
+        <result column="tCreated" property="created" jdbcType="TIMESTAMP"/>
+    </resultMap>
 
-  <select id="selectTypesByAid" resultMap="BaseResultMap" parameterType="INTEGER">
-    SELECT t.id tId,
-      t.`name` tName,
-      t.type tType,
-      t.created tCreated
-    FROM type as t
-    LEFT JOIN article_type as aty on aty.tid = t.id
-    WHERE aty.aid = #{aid}
-  </select>
+    <select id="selectTypesByAid" resultMap="BaseResultMap" parameterType="INTEGER">
+        SELECT t.id tId,
+          t.`name` tName,
+          t.type tType,
+          t.created tCreated
+        FROM type as t
+        LEFT JOIN article_type as aty on aty.tid = t.id
+        WHERE aty.aid = #{aid}
+    </select>
 </mapper>

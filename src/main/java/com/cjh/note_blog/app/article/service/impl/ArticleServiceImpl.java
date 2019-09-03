@@ -10,15 +10,19 @@ import com.cjh.note_blog.constant.WebConst;
 import com.cjh.note_blog.exc.ExecutionDatabaseExcepeion;
 import com.cjh.note_blog.exc.StatusCodeException;
 import com.cjh.note_blog.mapper.ArticleMapper;
+import com.cjh.note_blog.mapper.LikesMapper;
+import com.cjh.note_blog.mapper.UserLikesArticleMapper;
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.Article;
 import com.cjh.note_blog.app.article.service.IArticleService;
 import com.cjh.note_blog.app.article.model.ArchiveModel;
+import com.cjh.note_blog.pojo.DO.UserLikesArticle;
 import com.cjh.note_blog.utils.DateUtils;
 import com.cjh.note_blog.utils.MD5;
 import com.cjh.note_blog.utils.MdParser;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import io.swagger.models.auth.In;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -55,6 +59,12 @@ public class ArticleServiceImpl implements IArticleService {
     @Autowired
     private MdParser mdParser;
 
+    @Autowired
+    private LikesMapper likesMapper;
+
+    @Autowired
+    private UserLikesArticleMapper userLikesArticleMapper;
+
     /**
      * 获取文章集合
      * 当分类为空时，默认查询全部
@@ -67,7 +77,7 @@ public class ArticleServiceImpl implements IArticleService {
      */
     @Override
     public Result<PageInfo<ArticleModel>> getArticles(String type, String typeName,
-                                                      int page, int size) {
+                                                      int page, int size, String username) {
 
         page = page < 0 || page > WebConst.MAX_PAGE ? 1 : page;
 
@@ -80,7 +90,7 @@ public class ArticleServiceImpl implements IArticleService {
             return Result.fail(StatusCode.DataNotFound);
         }
         // 转换文章访问量
-        List<ArticleModel> articleModels = conversionArticles(articleList);
+        List<ArticleModel> articleModels = conversionArticles(articleList, username);
 
 
         PageInfo<ArticleModel> pageInfo = new PageInfo<>(articleModels);
@@ -114,7 +124,7 @@ public class ArticleServiceImpl implements IArticleService {
         archiveModels.forEach(archiveModel -> {
             List<Article> articles = articleMapper.selectArticleByDateYm(archiveModel.getDate(), username);
             // 转换文章访问量
-            List<ArticleModel> archiveModelList = conversionArticles(articles);
+            List<ArticleModel> archiveModelList = conversionArticles(articles, username);
             archiveModel.setArticles(archiveModelList);
         });
         PageInfo<ArchiveModel> pageInfo = new PageInfo<>(archiveModels);
@@ -143,7 +153,7 @@ public class ArticleServiceImpl implements IArticleService {
         List<Article> articles = articleMapper.selectArticleByAuthor(author);
 
         // 转换文章访问量
-        List<ArticleModel> articleModels = conversionArticles(articles);
+        List<ArticleModel> articleModels = conversionArticles(articles, author);
         PageInfo<ArticleModel> pageInfo = new PageInfo<>(articleModels);
         return Result.ok(pageInfo);
 
@@ -156,7 +166,7 @@ public class ArticleServiceImpl implements IArticleService {
      *
      * @param articleList 文章集合
      */
-    private List<ArticleModel> conversionArticles(List<Article> articleList) {
+    private List<ArticleModel> conversionArticles(List<Article> articleList, String username) {
         List<ArticleModel> articleModels = new ArrayList<>();
         articleList.forEach(article -> {
             // 加上cache里的访问量
@@ -166,6 +176,11 @@ public class ArticleServiceImpl implements IArticleService {
             String imgUrl = MD5.Base64Encode(article.getAuthor());
             articleModel.setAuthorImgUrl(webConfig.root + "/u/" + imgUrl);
             articleModel.setFrontCoverImgUrl(webConfig.root + article.getFrontCoverImgUrl());
+            Integer likes = likesMapper.selectLikesByAid(article.getId());
+            articleModel.setLikes(likes);
+            Boolean liked = userLikesArticleMapper.selectLikedAboutArticle(article.getId(), username) != null;
+
+            articleModel.setLiked(liked);
             articleModels.add(articleModel);
         });
         return articleModels;
@@ -179,7 +194,7 @@ public class ArticleServiceImpl implements IArticleService {
      *
      * @param article 文章
      */
-    private ArticleModel conversionArticle(Article article, String contentType) {
+    private ArticleModel conversionArticle(Article article, String contentType, String username) {
 
         // 获取缓存里的访问量
         int hits = webCacheService.getHitsFromCache(article.getId());
@@ -201,7 +216,10 @@ public class ArticleServiceImpl implements IArticleService {
         String imgUrl = MD5.Base64Encode(article.getAuthor());
         ArticleModel articleModel = new ArticleModel(article);
         articleModel.setAuthorImgUrl(webConfig.root + "/u/" + imgUrl);
-
+        Integer likes = likesMapper.selectLikesByAid(article.getId());
+        articleModel.setLikes(likes);
+        Boolean liked = userLikesArticleMapper.selectLikedAboutArticle(article.getId(), username) != null;
+        articleModel.setLiked(liked);
         return articleModel;
     }
 
@@ -212,7 +230,7 @@ public class ArticleServiceImpl implements IArticleService {
      * @return result data type: Acticle
      */
     @Override
-    public Result<ArticleModel> getArticleByArtName(String artName, String contentType) {
+    public Result<ArticleModel> getArticleByArtName(String artName, String contentType, String username) {
 
         if (StringUtils.isBlank(artName)) {
             // error: 参数为空
@@ -225,7 +243,7 @@ public class ArticleServiceImpl implements IArticleService {
             return Result.fail(StatusCode.DataNotFound);
         }
 
-        ArticleModel articleModel = conversionArticle(article, contentType);
+        ArticleModel articleModel = conversionArticle(article, contentType, username);
 
         return Result.ok(articleModel);
     }
@@ -252,7 +270,7 @@ public class ArticleServiceImpl implements IArticleService {
         }
 
 
-        ArticleModel articleModel = conversionArticle(article, contentType);
+        ArticleModel articleModel = conversionArticle(article, contentType, author);
 
         return Result.ok(articleModel);
     }
@@ -395,6 +413,43 @@ public class ArticleServiceImpl implements IArticleService {
             return Result.fail(StatusCode.ExecutionDatabaseError, "更新文章访问量失败");
         }
 
+        return Result.ok();
+    }
+
+    /**
+     * 点赞
+     *
+     * @param articleId
+     * @param username
+     * @return
+     */
+    @Transactional(rollbackFor = {StatusCodeException.class})
+    @Override
+    public Result likes(String articleId, String username) {
+        if (!StringUtils.isNumeric(articleId)) {
+            return Result.fail(StatusCode.ParameterIsInvalid, "文章id必须为纯数字");
+        }
+        Integer aid = Integer.valueOf(articleId);
+        Boolean liked = userLikesArticleMapper.selectLikedAboutArticle(aid, username) != null;
+        int i, j;
+        if (liked) {
+            // 取消赞
+            i = likesMapper.unLike(aid);
+
+            UserLikesArticle userLikesArticle = new UserLikesArticle(username, aid);
+            j = userLikesArticleMapper.delete(userLikesArticle);
+
+        } else {
+            // 点赞
+            i = likesMapper.like(aid);
+
+            UserLikesArticle userLikesArticle = new UserLikesArticle(username, aid);
+            j = userLikesArticleMapper.insert(userLikesArticle);
+
+        }
+        if (i != 1 || j != 1) {
+            throw new StatusCodeException(StatusCode.ExecutionDatabaseError);
+        }
         return Result.ok();
     }
 

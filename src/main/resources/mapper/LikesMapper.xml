@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cjh.note_blog.mapper.LikesMapper">
+    <resultMap id="BaseResultMap" type="com.cjh.note_blog.pojo.DO.Likes">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="article_id" property="articleId" jdbcType="INTEGER"/>
+        <result column="likes" property="likes" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <select id="selectLikesByAid" resultType="INTEGER">
+
+        select likes
+        from likes
+        where article_id = #{aid}
+
+  </select>
+
+    <update id="like">
+        UPDATE likes
+        SET likes = likes + 1
+        WHERE article_id = #{aid}
+    </update>
+
+    <update id="unLike">
+        UPDATE likes
+        SET likes = likes - 1
+        WHERE article_id = #{aid}
+    </update>
+</mapper>

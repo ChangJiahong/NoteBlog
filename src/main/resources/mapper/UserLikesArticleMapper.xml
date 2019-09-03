@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cjh.note_blog.mapper.UserLikesArticleMapper" >
+    <resultMap id="BaseResultMap" type="com.cjh.note_blog.pojo.DO.UserLikesArticle" >
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="articleId" property="articleId" jdbcType="INTEGER" />
+        <id column="username" property="username" jdbcType="VARCHAR" javaType="String"/>
+    </resultMap>
+
+    <select id="selectLikedAboutArticle" resultMap="BaseResultMap">
+        select article_id, username
+        from user_likes_article
+        where article_id = #{articleId} and username = #{username}
+    </select>
+
+</mapper>

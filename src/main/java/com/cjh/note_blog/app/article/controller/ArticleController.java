@@ -71,10 +71,13 @@ public class ArticleController extends BaseController {
                                     @RequestParam(required = false, defaultValue = "1")
                                             Integer page,
                                     @RequestParam(required = false, defaultValue = "12")
-                                            Integer size) {
+                                            Integer size,
+                                    HttpServletRequest request) {
 
 
-        Result<PageInfo<ArticleModel>> listResult = articleService.getArticles(type, typeName, page, size);
+        String username = getUsername(request);
+
+        Result<PageInfo<ArticleModel>> listResult = articleService.getArticles(type, typeName, page, size, username);
 
         if (!listResult.isSuccess()) {
             return RestResponse.fail(listResult);
@@ -102,8 +105,8 @@ public class ArticleController extends BaseController {
                                    HttpServletRequest request,
                                    @RequestHeader(value = "article-type", defaultValue = "md") String contentType) {
 
-
-        Result<ArticleModel> result = articleService.getArticleByArtName(artName, contentType);
+        String username = getUsername(request);
+        Result<ArticleModel> result = articleService.getArticleByArtName(artName, contentType, username);
         if (!result.isSuccess()) {
             return RestResponse.fail(result);
         }
@@ -129,8 +132,10 @@ public class ArticleController extends BaseController {
     public RestResponse getArchive(@RequestParam(required = false, defaultValue = "1")
                                            Integer page,
                                    @RequestParam(required = false, defaultValue = "12")
-                                           Integer size) {
-        Result<PageInfo<ArchiveModel>> result = articleService.getArchives(page, size);
+                                           Integer size,
+                                   HttpServletRequest request) {
+        String username = getUsername(request);
+        Result<PageInfo<ArchiveModel>> result = articleService.getArchives(page, size, username);
         if (!result.isSuccess()) {
             return RestResponse.fail(result);
         }
@@ -165,6 +170,7 @@ public class ArticleController extends BaseController {
         }
         return RestResponse.ok(result);
     }
+
     /**
      * 【私有方法】【验证】
      * 【个人用户权限】
@@ -228,7 +234,7 @@ public class ArticleController extends BaseController {
      * 发布文章|保存
      *
      * @param articleModel 文章对象
-     * @param request 请求对象
+     * @param request      请求对象
      * @return 统一返回对象
      */
     @ApiOperation(value = "发布/保存文章", notes = "发布或保存文章，如果有id则保存，没有则新建")
@@ -298,6 +304,28 @@ public class ArticleController extends BaseController {
 
         return RestResponse.ok();
     }
+
+    /**
+     * 点赞
+     *
+     * @param articleId 文章id
+     * @param request   。。。
+     * @return 。。。
+     */
+    @PostMapping("/u/like/{articleId}")
+    public RestResponse like(@PathVariable(value = "articleId") String articleId,
+                             HttpServletRequest request) {
+
+        String username = getUsername(request);
+        Result result = articleService.likes(articleId, username);
+
+        if (!result.isSuccess()){
+            return RestResponse.fail(result);
+        }
+
+        return RestResponse.ok();
+    }
+
 
     /**
      * 【私有方法】【验证】

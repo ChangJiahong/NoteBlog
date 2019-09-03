@@ -92,11 +92,6 @@ public class BaseInterceptor implements HandlerInterceptor {
         response.addHeader("Access-Control-Allow-Headers", StringUtils.join(headers, ","));
 
 
-        if (isPassToken) {
-            LOGGE.info("[" + uri + "]:免验证");
-            return true;
-        }
-
         /*
             从请求头
             获取token
@@ -107,34 +102,17 @@ public class BaseInterceptor implements HandlerInterceptor {
         LOGGE.info("contextPath：" + contextPath);
         LOGGE.info("token:" + token);
 
-        // 验证解析token
-        Result result = TokenUtil.checkToken(token);
-
-        if (result.isSuccess()) {
-            // 身份验证成功
-            // 允许访问
-            // 保存user
-            String email = (String) result.getData();
-            // 缓存获取token信息
-            String uToken = webCacheService.getUserTokenFromCache(email);
-            // 缓存获取 用户信息，没有则返回登录失效
-            User user = webCacheService.getUserFromCache(email);
-            // 缓存中有该用户令牌才有效
-            if (token.equals(uToken) && user != null) {
-                // 验证权限
-                boolean bingo = compareRole(user.getRoles(), requiredRole);
-
-                if (bingo) {
-                    request.setAttribute(WebConst.USER_LOGIN, user);
-                    return true;
-                }
-                // error: 用户权限不足
-                result = Result.fail(StatusCode.InadequateUserRights);
-
-            } else {
-                // error: 登录状态失效
-                result = Result.fail(StatusCode.LogonStateFailure);
-            }
+        // 验证用户身份
+        Result result = verifyUser(token, request);
+        if (result.isSuccess()){
+            User user = (User) result.getData();
+            request.setAttribute(WebConst.USER_LOGIN, user);
+            LOGGE.info("[" + uri + "]:欢迎 "+user.getUsername()+" 用户");
+            return true;
+        }else if (isPassToken){
+            LOGGE.info("[" + uri + "]:免验证");
+            LOGGE.info("[" + uri + "]:匿名访问");
+            return true;
         }
 
         response.setHeader("Content-type", "text/json;charset=UTF-8");
@@ -156,6 +134,44 @@ public class BaseInterceptor implements HandlerInterceptor {
             }
         }
         return bingo;
+    }
+
+    /**
+     * 验证user
+     * @param token
+     * @param request
+     * @return
+     */
+    Result verifyUser(String token, HttpServletRequest request) {
+        // 验证解析token
+        Result result = TokenUtil.checkToken(token);
+
+        if (result.isSuccess()) {
+            // 身份验证成功
+            // 允许访问
+            // 保存user
+            String email = (String) result.getData();
+            // 缓存获取token信息
+            String uToken = webCacheService.getUserTokenFromCache(email);
+            // 缓存获取 用户信息，没有则返回登录失效
+            User user = webCacheService.getUserFromCache(email);
+            // 缓存中有该用户令牌才有效
+            if (token.equals(uToken) && user != null) {
+                // 验证权限
+                boolean bingo = compareRole(user.getRoles(), requiredRole);
+
+                if (bingo) {
+                    return Result.ok(user);
+                }
+                // error: 用户权限不足
+                return Result.fail(StatusCode.InadequateUserRights);
+
+            } else {
+                // error: 登录状态失效
+                return Result.fail(StatusCode.LogonStateFailure);
+            }
+        }
+        return result;
     }
 
     /**

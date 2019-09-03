@@ -26,7 +26,7 @@ public interface IArticleService {
      * @return
      */
     Result<PageInfo<ArticleModel>> getArticles(String type, String typeName,
-                                               int page, int size);
+                                               int page, int size, String username);
 
     /**
      * 创建文章或修改文章
@@ -43,7 +43,7 @@ public interface IArticleService {
      * @param contentType 文章内容格式
      * @return result data type: Acticle
      */
-    Result<ArticleModel> getArticleByArtName(String artName, String contentType);
+    Result<ArticleModel> getArticleByArtName(String artName, String contentType, String username);
 
     /**
      * 删除文章 byId
@@ -103,4 +103,12 @@ public interface IArticleService {
      * @return 统一返回对象
      */
     Result<PageInfo<ArticleModel>> getArticleList(String author, int page, int size);
+
+    /**
+     * 点赞
+     * @param articleId
+     * @param username
+     * @return
+     */
+    Result likes(String articleId, String username);
 }
