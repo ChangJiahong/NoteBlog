@@ -89,12 +89,54 @@ public class ArticleServiceImpl implements IArticleService {
         if (null == articleList || articleList.isEmpty()) {
             return Result.fail(StatusCode.DataNotFound);
         }
+
+        PageInfo<ArticleModel> pageInfo = getArticleModelPageInfo(username, articleList);
+        return Result.ok(pageInfo);
+    }
+
+    /**
+     * 分页
+     * @param username
+     * @param articleList
+     * @return
+     */
+    private PageInfo<ArticleModel> getArticleModelPageInfo(String username, List<Article> articleList) {
+        PageInfo<Article> articlePageInfo = new PageInfo<>(articleList);
+
         // 转换文章访问量
         List<ArticleModel> articleModels = conversionArticles(articleList, username);
 
+        PageInfo<ArticleModel> pageInfo = copyPage(articlePageInfo);
+        pageInfo.setList(articleModels);
+        return pageInfo;
+    }
 
-        PageInfo<ArticleModel> pageInfo = new PageInfo<>(articleModels);
-        return Result.ok(pageInfo);
+
+    /**
+     * 页面copy
+     * @param articlePageInfo
+     * @return
+     */
+    private PageInfo<ArticleModel> copyPage(PageInfo<Article> articlePageInfo){
+        PageInfo<ArticleModel> articleModelPageInfo = new PageInfo<>();
+        articleModelPageInfo.setEndRow(articlePageInfo.getEndRow());
+        articleModelPageInfo.setHasNextPage(articlePageInfo.isHasNextPage());
+        articleModelPageInfo.setHasPreviousPage(articlePageInfo.isHasPreviousPage());
+        articleModelPageInfo.setIsFirstPage(articlePageInfo.isIsFirstPage());
+        articleModelPageInfo.setIsLastPage(articlePageInfo.isIsLastPage());
+        articleModelPageInfo.setNavigateFirstPage(articlePageInfo.getNavigateFirstPage());
+        articleModelPageInfo.setNavigateLastPage(articlePageInfo.getNavigateLastPage());
+        articleModelPageInfo.setNavigatepageNums(articlePageInfo.getNavigatepageNums());
+        articleModelPageInfo.setNavigatePages(articlePageInfo.getNavigatePages());
+        articleModelPageInfo.setNextPage(articlePageInfo.getNextPage());
+        articleModelPageInfo.setPageNum(articlePageInfo.getPageNum());
+        articleModelPageInfo.setPages(articlePageInfo.getPages());
+        articleModelPageInfo.setPageSize(articlePageInfo.getPageSize());
+        articleModelPageInfo.setPrePage(articlePageInfo.getPrePage());
+        articleModelPageInfo.setSize(articlePageInfo.getSize());
+        articleModelPageInfo.setStartRow(articlePageInfo.getStartRow());
+        articleModelPageInfo.setTotal(articlePageInfo.getTotal());
+        return articleModelPageInfo;
     }
 
     /**
@@ -152,9 +194,8 @@ public class ArticleServiceImpl implements IArticleService {
 
         List<Article> articles = articleMapper.selectArticleByAuthor(author);
 
-        // 转换文章访问量
-        List<ArticleModel> articleModels = conversionArticles(articles, author);
-        PageInfo<ArticleModel> pageInfo = new PageInfo<>(articleModels);
+        PageInfo<ArticleModel> pageInfo = getArticleModelPageInfo(author, articles);
+
         return Result.ok(pageInfo);
 
     }
@@ -174,7 +215,7 @@ public class ArticleServiceImpl implements IArticleService {
             article.setHits(article.getHits() + incrementHits);
             ArticleModel articleModel = new ArticleModel(article);
             String imgUrl = MD5.Base64Encode(article.getAuthor());
-            articleModel.setAuthorImgUrl(webConfig.root + "/u/" + imgUrl);
+            articleModel.setAuthorImgUrl(webConfig.root + webConfig.userImgUrlPrefix+"/" + imgUrl);
             articleModel.setFrontCoverImgUrl(webConfig.root + article.getFrontCoverImgUrl());
             Integer likes = likesMapper.selectLikesByAid(article.getId());
             articleModel.setLikes(likes);
@@ -215,7 +256,7 @@ public class ArticleServiceImpl implements IArticleService {
 
         String imgUrl = MD5.Base64Encode(article.getAuthor());
         ArticleModel articleModel = new ArticleModel(article);
-        articleModel.setAuthorImgUrl(webConfig.root + "/u/" + imgUrl);
+        articleModel.setAuthorImgUrl(webConfig.root + webConfig.userImgUrlPrefix+"/" + imgUrl);
         Integer likes = likesMapper.selectLikesByAid(article.getId());
         articleModel.setLikes(likes);
         Boolean liked = userLikesArticleMapper.selectLikedAboutArticle(article.getId(), username) != null;
@@ -297,6 +338,7 @@ public class ArticleServiceImpl implements IArticleService {
             }
             frontCoverImgUrl = frontCoverImgUrl.substring(webConfig.root.length());
         } else {
+            // 自动生成默认封面
             int n = new Random().nextInt(19) + 1;
             frontCoverImgUrl = "/img/" + n + ".jpg";
         }
@@ -423,7 +465,7 @@ public class ArticleServiceImpl implements IArticleService {
      * @param username
      * @return
      */
-    @Transactional(rollbackFor = {StatusCodeException.class})
+    @Transactional(rollbackFor = {ExecutionDatabaseExcepeion.class})
     @Override
     public Result likes(String articleId, String username) {
         if (!StringUtils.isNumeric(articleId)) {
@@ -448,7 +490,7 @@ public class ArticleServiceImpl implements IArticleService {
 
         }
         if (i != 1 || j != 1) {
-            throw new StatusCodeException(StatusCode.ExecutionDatabaseError);
+            throw new ExecutionDatabaseExcepeion();
         }
         return Result.ok();
     }
