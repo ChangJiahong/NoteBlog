@@ -138,6 +138,34 @@ public class ArticleController extends BaseController {
     }
 
     /**
+     * 【私有方法】
+     * 【验证】
+     * 获取当前用户的所有文章归档
+     *
+     * @param page 页码
+     * @param size 大小
+     * @return
+     */
+    @ApiOperation(value = "获取个人归档", notes = "获取个人归档信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "页码", defaultValue = "1", dataType = "int", paramType = "query"),
+            @ApiImplicitParam(name = "size", value = "单页大小", defaultValue = "12", dataType = "int", paramType = "query")
+    })
+    @GetMapping("/u/archives")
+    public RestResponse getArchivesByUser(@RequestParam(required = false, defaultValue = "1")
+                                                  Integer page,
+                                          @RequestParam(required = false, defaultValue = "12")
+                                                  Integer size,
+                                          HttpServletRequest request) {
+
+        User user = getUser(request);
+        Result<PageInfo<ArchiveModel>> result = articleService.getArchives(page, size, user.getUsername());
+        if (!result.isSuccess()) {
+            return RestResponse.fail(result);
+        }
+        return RestResponse.ok(result);
+    }
+    /**
      * 【私有方法】【验证】
      * 【个人用户权限】
      * 获取该用户所有文章列表
@@ -152,7 +180,7 @@ public class ArticleController extends BaseController {
             @ApiImplicitParam(name = "page", value = "页码", defaultValue = "1", dataType = "int", paramType = "query"),
             @ApiImplicitParam(name = "size", value = "单页大小", defaultValue = "12", dataType = "int", paramType = "query")
     })
-    @GetMapping("/list")
+    @GetMapping("/u/list")
     public RestResponse getArticleList(@RequestParam(required = false, defaultValue = "1")
                                                Integer page,
                                        @RequestParam(required = false, defaultValue = "12")
@@ -181,7 +209,7 @@ public class ArticleController extends BaseController {
             @ApiImplicitParam(name = "article-type", value = "文章内容格式md html", dataType = "string", paramType = "header"),
             @ApiImplicitParam(name = "artName", value = "文章id或者别名", dataType = "string", paramType = "path"),
     })
-    @GetMapping("/pre/{artName}")
+    @GetMapping("/u/pre/{artName}")
     public RestResponse preview(@PathVariable String artName, HttpServletRequest request,
                                 @RequestHeader(value = "article-type", defaultValue = "md") String contentType) {
 
@@ -208,7 +236,7 @@ public class ArticleController extends BaseController {
             @ApiImplicitParam(name = "token", value = "身份令牌", dataType = "string", paramType = "header"),
             @ApiImplicitParam(name = "articleModel", value = "文章实体", dataType = "articleModel", paramType = "body")
     })
-    @PostMapping({"", "/"})
+    @PostMapping("/u")
     public RestResponse publish(@Valid @RequestBody ArticleModel articleModel,
                                 Errors errors,
                                 HttpServletRequest request) {
@@ -253,7 +281,7 @@ public class ArticleController extends BaseController {
             @ApiImplicitParam(name = "id", value = "文章id", dataType = "string", paramType = "path"),
             @ApiImplicitParam(name = "status", value = "状态(publish、draft)", dataType = "string", paramType = "path")
     })
-    @PostMapping("/status/{id}/{status}")
+    @PostMapping("/u/status/{id}/{status}")
     public RestResponse articleEnable(@PathVariable(value = "id") Integer id,
                                       @Contains(target = {Article.PUBLISH, Article.DRAFT},
                                               message = "请求参数不正确")
@@ -284,7 +312,7 @@ public class ArticleController extends BaseController {
             @ApiImplicitParam(name = "token", value = "身份令牌", dataType = "string", paramType = "header"),
             @ApiImplicitParam(name = "id", value = "文章id", dataType = "int", paramType = "path")
     })
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/u/{id}")
     public RestResponse delArticleById(@PathVariable Integer id, HttpServletRequest request) {
 
         User user = getUser(request);

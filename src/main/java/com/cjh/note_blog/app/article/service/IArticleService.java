@@ -92,6 +92,8 @@ public interface IArticleService {
      */
     Result<PageInfo<ArchiveModel>> getArchives(int page, int size);
 
+    Result<PageInfo<ArchiveModel>> getArchives(int page, int size, String username);
+
     /**
      * 获取当前用户所有文档列表
      *

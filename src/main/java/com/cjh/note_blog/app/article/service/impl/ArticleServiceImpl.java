@@ -96,18 +96,23 @@ public class ArticleServiceImpl implements IArticleService {
      */
     @Override
     public Result<PageInfo<ArchiveModel>> getArchives(int page, int size) {
+        return getArchives(page, size, null);
+    }
+
+    @Override
+    public Result<PageInfo<ArchiveModel>> getArchives(int page, int size, String username) {
         page = page < 0 || page > WebConst.MAX_PAGE ? 1 : page;
 
         size = size < 0 || size > WebConst.MAX_PAGESIZE ? WebConst.DEFAULT_PAGESIZE : size;
 
         PageHelper.startPage(page, size);
-        List<ArchiveModel> archiveModels = articleMapper.selectArchives();
+        List<ArchiveModel> archiveModels = articleMapper.selectArchives(username);
         if (null == archiveModels || archiveModels.isEmpty()) {
             // error: 没有找到
             return Result.fail(StatusCode.DataNotFound);
         }
         archiveModels.forEach(archiveModel -> {
-            List<Article> articles = articleMapper.selectArticleByDateYm(archiveModel.getDate());
+            List<Article> articles = articleMapper.selectArticleByDateYm(archiveModel.getDate(), username);
             // 转换文章访问量
             List<ArticleModel> archiveModelList = conversionArticles(articles);
             archiveModel.setArticles(archiveModelList);
@@ -115,7 +120,6 @@ public class ArticleServiceImpl implements IArticleService {
         PageInfo<ArchiveModel> pageInfo = new PageInfo<>(archiveModels);
         return Result.ok(pageInfo);
     }
-
 
     /**
      * 获取当前用户所有文档列表

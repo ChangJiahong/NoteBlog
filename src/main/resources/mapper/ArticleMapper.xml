@@ -101,6 +101,19 @@
                count(*) as count
         from article
         where status = 'publish'
+        <if test="username != null and username != ''">
+            and author = #{username}
+        </if>
+        group by date
+        order by date desc
+    </select>
+
+    <!--    查询私人归档-->
+    <select id="selectPersonArchives" resultMap="archiveVoMap">
+        select DATE_FORMAT(created,'%Y%m') as date,
+               count(*) as count
+        from article
+        where status = 'publish' and author = #{username}
         group by date
         order by date desc
     </select>
@@ -112,6 +125,9 @@
         from article as a
         where status = 'publish'
         and DATE_FORMAT(created,'%Y%m') = #{date}
+        <if test="username != null and username != ''">
+            and a.author = #{username}
+        </if>
         group by created
         order by created desc
     </select>
