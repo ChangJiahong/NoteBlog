@@ -124,7 +124,7 @@ public class FileController extends BaseController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "token", value = "身份令牌", dataType = "string", paramType = "header"),
             @ApiImplicitParam(name = "file", value = "文件", dataType = "file", paramType = "form"),
-      })
+    })
     @PostMapping("/upuserimg")
     public RestResponse upUserImg(@RequestParam("file") MultipartFile file,
                                   HttpServletRequest request) {
@@ -180,8 +180,9 @@ public class FileController extends BaseController {
 
     /**
      * 遍历文件夹
+     *
      * @param folderPath 文件夹路径
-     * @param request 。，。
+     * @param request    。，。
      * @return 。。
      */
     @ApiOperation(value = "浏览文件夹", notes = "浏览文件夹")
@@ -190,13 +191,13 @@ public class FileController extends BaseController {
             @ApiImplicitParam(name = "folderPath", value = "文件夹路径", dataType = "string", paramType = "form"),
     })
     @GetMapping("/list")
-    public RestResponse folderPreview(@RequestParam("folderPath")String folderPath,
+    public RestResponse folderPreview(@RequestParam("folderPath") String folderPath,
                                       HttpServletRequest request) {
 
         String email = getEmail(request);
-        Result<List<FileDir>> result = fileService.getFileList(folderPath,email);
+        Result<List<FileDir>> result = fileService.getFileList(folderPath, email);
 
-        if (!result.isSuccess()){
+        if (!result.isSuccess()) {
             return RestResponse.fail(result);
         }
         return RestResponse.ok(result);

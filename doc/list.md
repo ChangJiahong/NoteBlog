@@ -2,7 +2,7 @@
 - [ ] [账户管理](../src/main/java/com/cjh/note_blog/CSD/Account/README.md)；
 - [x] [文章管理](../src/main/java/com/cjh/note_blog/CSD/Article/README.md)；
 - [x] [文章和标签关系管理](../src/main/java/com/cjh/note_blog/CSD/ArticleTypeRela/README.md)；
-- [ ] [文件管理](../src/main/java/com/cjh/note_blog/CSD/File/README.md);
+- [x] [文件管理](../src/main/java/com/cjh/note_blog/CSD/File/README.md);
 - [x] [标签种类管理](../src/main/java/com/cjh/note_blog/CSD/Type/README.md)；
 - [ ] 评论功能；
 - [ ] 友链管理；
