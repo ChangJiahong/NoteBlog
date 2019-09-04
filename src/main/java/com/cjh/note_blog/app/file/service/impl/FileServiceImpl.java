@@ -66,8 +66,8 @@ public class FileServiceImpl implements IFileService {
     public Result<FileModel> save(MultipartFile file, String email, String protective) throws StatusCodeException {
         String fileName = file.getOriginalFilename();
         String random = System.currentTimeMillis() + "";
-        String saveFilePath = webConfig.fileStorageRootPath + "/" + email + webConfig.fileStoragePrefix + "/" + random + fileName;
-        return save(file, email, protective, saveFilePath);
+        String relativePath = "/" + random + fileName;
+        return save(file, email, protective, relativePath);
     }
 
     /**
@@ -96,13 +96,15 @@ public class FileServiceImpl implements IFileService {
         return Result.ok(FileModel.fail(fileName, "保存失败"));
     }
 
-    private Result<FileModel> save(MultipartFile file, String email, String protective, String saveFilePath) {
+    private Result<FileModel> save(MultipartFile file, String email, String protective, String relativePath) {
         String fileName = file.getOriginalFilename();
         try {
-            File saveFile = new File(saveFilePath);
+            // 根路径加相对路径
+            File saveFile = new File(webConfig.fileStorageRootPath + "/" + email + webConfig.fileStoragePrefix + relativePath);
             InputStream fileInput = file.getInputStream();
             FileUtils.copyInputStreamToFile(fileInput, saveFile);
-            FileRev fileRev = insert(fileName, file.getContentType(), saveFilePath, email, protective);
+            // 保存相对路径
+            FileRev fileRev = insert(fileName, file.getContentType(), relativePath, email, protective);
             if (fileRev == null) {
                 saveFile.delete();
                 Result.ok(FileModel.fail(fileName, "保存失败"));

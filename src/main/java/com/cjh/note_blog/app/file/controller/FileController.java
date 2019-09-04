@@ -44,6 +44,9 @@ public class FileController extends BaseController {
     @Autowired
     IFileService fileService;
 
+    @Autowired
+    WebConfig webConfig;
+
     @PostMapping("/uploads")
     public RestResponse uploads(@RequestParam("files") List<MultipartFile> files,
                                 @RequestParam(value = "protective", defaultValue = FileRev.PUBLIC) String protective,
@@ -94,7 +97,7 @@ public class FileController extends BaseController {
         if (result.isSuccess()){
             try {
                 FileRev fileRev = result.getData();
-                File file = new File(fileRev.getPath());
+                File file = new File(webConfig.fileStorageRootPath + "/" + email + webConfig.fileStoragePrefix+fileRev.getPath());
                 response.setHeader("content-type", fileRev.getType());
                 response.setContentType(fileRev.getType());
                 response.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + URLEncoder.encode(fileRev.getName(),"UTF-8"));
