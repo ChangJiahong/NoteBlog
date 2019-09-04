@@ -2,6 +2,7 @@ package com.cjh.note_blog.pojo.DO;
 
 import javax.persistence.Column;
 import javax.persistence.Id;
+import java.util.Date;
 
 /**
  * :
@@ -28,6 +29,8 @@ public class FileRev {
     String author;
 
     String protective;
+
+    Date created;
 
     public String getFileId() {
         return fileId;
@@ -75,5 +78,13 @@ public class FileRev {
 
     public void setProtective(String protective) {
         this.protective = protective;
+    }
+
+    public Date getCreated() {
+        return created;
+    }
+
+    public void setCreated(Date created) {
+        this.created = created;
     }
 }

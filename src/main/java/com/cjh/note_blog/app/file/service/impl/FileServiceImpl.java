@@ -1,5 +1,6 @@
 package com.cjh.note_blog.app.file.service.impl;
 
+import com.cjh.note_blog.app.file.model.FileDir;
 import com.cjh.note_blog.app.file.model.FileModel;
 import com.cjh.note_blog.app.file.service.IFileService;
 import com.cjh.note_blog.conf.WebConfig;
@@ -8,6 +9,7 @@ import com.cjh.note_blog.exc.StatusCodeException;
 import com.cjh.note_blog.mapper.FileRevMapper;
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.FileRev;
+import com.cjh.note_blog.utils.DateUtils;
 import com.cjh.note_blog.utils.MD5;
 import com.cjh.note_blog.utils.WebUtils;
 import org.apache.commons.io.FileUtils;
@@ -40,19 +42,31 @@ public class FileServiceImpl implements IFileService {
     @Autowired
     FileRevMapper fileRevMapper;
 
+
     /**
-     * 保存
+     * 获取当前用户的文件夹的路径
      *
-     * @param files
+     * @param email
      * @return
      */
+    private String getFilePathRoot(String email) {
+        return webConfig.fileStorageRootPath + "/" + email + webConfig.fileStoragePrefix;
+    }
+
+    /**
+     * 多文件保存
+     *
+     * @param files 。。
+     * @return 。。
+     */
     @Override
-    public Result<List<FileModel>> saves(List<MultipartFile> files, String email, String protective) {
+    public Result<List<FileModel>> saves(List<MultipartFile> files, String email,
+                                         String protective, String folderPath) {
         List<FileModel> fileModels = new ArrayList<>();
 
         files.forEach(multipartFile -> {
             try {
-                Result<FileModel> result = save(multipartFile, email, protective);
+                Result<FileModel> result = save(multipartFile, email, protective, folderPath);
                 fileModels.add(result.getData());
             } catch (StatusCodeException e) {
                 fileModels.add(FileModel.fail(multipartFile.getOriginalFilename(), "保存失败"));
@@ -61,21 +75,55 @@ public class FileServiceImpl implements IFileService {
         return Result.ok(fileModels);
     }
 
+    /**
+     * 单个文件保存
+     *
+     * @param file       。。
+     * @param email      。。
+     * @param protective 。。
+     * @param folderPath 。。
+     * @return 。。
+     * @throws StatusCodeException 。。
+     */
     @Transactional(rollbackFor = {StatusCodeException.class})
     @Override
-    public Result<FileModel> save(MultipartFile file, String email, String protective) throws StatusCodeException {
+    public Result<FileModel> save(MultipartFile file, String email,
+                                  String protective, String folderPath) throws StatusCodeException {
         String fileName = file.getOriginalFilename();
-        String random = System.currentTimeMillis() + "";
-        String relativePath = "/" + random + fileName;
-        return save(file, email, protective, relativePath);
+        String fileId = WebUtils.getUUID();
+        String randomName = fileId + fileName.substring(fileName.lastIndexOf("."));
+        String relativePath = "/";
+        if (StringUtils.isBlank(folderPath)) {
+            relativePath += randomName;
+        } else {
+            relativePath += folderPath + "/" + randomName;
+        }
+        try {
+            // 根路径加相对路径
+            File saveFile = new File(getFilePathRoot(email) + relativePath);
+            InputStream fileInput = file.getInputStream();
+            FileUtils.copyInputStreamToFile(fileInput, saveFile);
+            // 保存相对路径
+            FileRev fileRev = insert(fileId, fileName, file.getContentType(), relativePath, email, protective);
+            if (fileRev == null) {
+                saveFile.delete();
+                return Result.ok(FileModel.fail(fileName, "保存失败"));
+            }
+            FileModel fileModel = FileModel.success(fileName, webConfig.root + "/file/" + fileRev.getFileId());
+            return Result.ok(fileModel);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new StatusCodeException(StatusCode.IOError, "文件写入失败");
+        }
     }
+
 
     /**
      * 保存图片
      *
-     * @param file
-     * @param email
-     * @return
+     * @param file  。。
+     * @param email 。。
+     * @return 。。
      */
     @Override
     public Result<FileModel> saveUserImg(MultipartFile file, String email, String username) {
@@ -96,38 +144,26 @@ public class FileServiceImpl implements IFileService {
         return Result.ok(FileModel.fail(fileName, "保存失败"));
     }
 
-    private Result<FileModel> save(MultipartFile file, String email, String protective, String relativePath) {
-        String fileName = file.getOriginalFilename();
-        try {
-            // 根路径加相对路径
-            File saveFile = new File(webConfig.fileStorageRootPath + "/" + email + webConfig.fileStoragePrefix + relativePath);
-            InputStream fileInput = file.getInputStream();
-            FileUtils.copyInputStreamToFile(fileInput, saveFile);
-            // 保存相对路径
-            FileRev fileRev = insert(fileName, file.getContentType(), relativePath, email, protective);
-            if (fileRev == null) {
-                saveFile.delete();
-                Result.ok(FileModel.fail(fileName, "保存失败"));
-            }
-            FileModel fileModel = FileModel.success(fileName, webConfig.root + "/file/" + fileRev.getFileId());
-            return Result.ok(fileModel);
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new StatusCodeException(StatusCode.IOError, "文件写入失败");
-        }
-    }
-
-
-    private FileRev insert(String name, String type,
+    /**
+     * 插入
+     *
+     * @param name       文件名
+     * @param type       文件类型
+     * @param path       储存相对路径
+     * @param email      。。
+     * @param protective 。。
+     * @return 。。
+     */
+    private FileRev insert(String fileId, String name, String type,
                            String path, String email, String protective) {
-        String fileid = WebUtils.getUUID();
         FileRev fileRev = new FileRev();
         fileRev.setName(name);
         fileRev.setType(type);
         fileRev.setAuthor(email);
         fileRev.setPath(path);
         fileRev.setProtective(protective);
-        fileRev.setFileId(fileid);
+        fileRev.setFileId(fileId);
+        fileRev.setCreated(DateUtils.getNow());
 
         int i = fileRevMapper.insert(fileRev);
         if (i <= 0) {
@@ -140,9 +176,9 @@ public class FileServiceImpl implements IFileService {
     /**
      * 查找文件
      *
-     * @param email
-     * @param fileId
-     * @return
+     * @param email  。。
+     * @param fileId 文件id
+     * @return 。。
      */
     @Override
     public Result<FileRev> selectFile(String email, String fileId) {
@@ -167,5 +203,42 @@ public class FileServiceImpl implements IFileService {
         }
 
         return Result.ok(fileRev);
+    }
+
+    /**
+     * 获取当前文件夹内容
+     *
+     * @param folderPath 文件夹路径
+     * @return 。。
+     */
+    @Override
+    public Result<List<FileDir>> getFileList(String folderPath, String email) {
+        String root =getFilePathRoot(email);
+        File dir = new File( root+ "/" + folderPath);
+        if (!dir.exists()){
+            return Result.fail(StatusCode.FileDoesNotExist, "文件夹不存在");
+        }
+        File[] files = dir.listFiles();
+        List<FileDir> fileDirs = new ArrayList<>();
+        FileDir fileDir;
+        for (File file : files) {
+
+            if (file.isDirectory()) {
+                fileDir = new FileDir();
+                fileDir.setType("dir");
+                fileDir.setName(file.getName());
+                fileDir.setCurrentPath(file.getAbsolutePath().substring(root.length()));
+                fileDir.setCount(file.listFiles().length);
+            } else {
+                String fileName = file.getName();
+                String fileId = fileName.substring(0, fileName.lastIndexOf("."));
+                // 查询数据库
+                FileRev fileRev = fileRevMapper.selectByPrimaryKey(fileId);
+                fileDir = new FileDir(fileRev);
+            }
+            fileDirs.add(fileDir);
+        }
+
+        return Result.ok(fileDirs);
     }
 }

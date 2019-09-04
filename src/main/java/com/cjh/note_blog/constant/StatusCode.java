@@ -210,7 +210,11 @@ public enum StatusCode {
     UnsafeLink(90001, "UnsafeLink", "不安全的链接"),
 
     /* IO */
-    IOError(100001, "IO error","文件IO错误")
+    IOError(100001, "IO error","文件IO错误"),
+    /**
+     * 文件不存在
+     */
+    FileDoesNotExist(100002, "File Does Not Exist", "文件不存在")
     ;
 
 
