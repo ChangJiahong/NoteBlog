@@ -50,7 +50,7 @@ public class FileServiceImpl implements IFileService {
      * @return
      */
     private String getFilePathRoot(String email) {
-        return webConfig.fileStorageRootPath + "/" + email + webConfig.fileStoragePrefix;
+        return webConfig.fileStorageRootPath;
     }
 
     /**
@@ -92,7 +92,8 @@ public class FileServiceImpl implements IFileService {
         String fileName = file.getOriginalFilename();
         String fileId = WebUtils.getUUID();
         String randomName = fileId + fileName.substring(fileName.lastIndexOf("."));
-        String relativePath = "/";
+        // 用户相对路径
+        String relativePath = "/" + email + webConfig.fileStoragePrefix + "/";
         if (StringUtils.isBlank(folderPath)) {
             relativePath += randomName;
         } else {
@@ -100,7 +101,7 @@ public class FileServiceImpl implements IFileService {
         }
         try {
             // 根路径加相对路径
-            File saveFile = new File(getFilePathRoot(email) + relativePath);
+            File saveFile = new File(webConfig.fileStorageRootPath + relativePath);
             InputStream fileInput = file.getInputStream();
             FileUtils.copyInputStreamToFile(fileInput, saveFile);
             // 保存相对路径
@@ -213,7 +214,7 @@ public class FileServiceImpl implements IFileService {
      */
     @Override
     public Result<List<FileDir>> getFileList(String folderPath, String email) {
-        String root = getFilePathRoot(email);
+        String root = webConfig.fileStorageRootPath +"/"+email + webConfig.fileStoragePrefix;
         File dir = new File(root + "/" + folderPath);
         if (!dir.exists()) {
             return Result.fail(StatusCode.FileDoesNotExist, "文件夹不存在");

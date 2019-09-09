@@ -162,7 +162,7 @@ public class FileController extends BaseController {
         if (result.isSuccess()) {
             try {
                 FileRev fileRev = result.getData();
-                File file = new File(webConfig.fileStorageRootPath + "/" + email + webConfig.fileStoragePrefix + fileRev.getPath());
+                File file = new File(webConfig.fileStorageRootPath+ fileRev.getPath());
                 response.setHeader("content-type", fileRev.getType());
                 response.setContentType(fileRev.getType());
                 response.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + URLEncoder.encode(fileRev.getName(), "UTF-8"));
