@@ -213,16 +213,16 @@ public class FileServiceImpl implements IFileService {
      */
     @Override
     public Result<List<FileDir>> getFileList(String folderPath, String email) {
-        String root =getFilePathRoot(email);
-        File dir = new File( root+ "/" + folderPath);
-        if (!dir.exists()){
+        String root = getFilePathRoot(email);
+        File dir = new File(root + "/" + folderPath);
+        if (!dir.exists()) {
             return Result.fail(StatusCode.FileDoesNotExist, "文件夹不存在");
         }
         File[] files = dir.listFiles();
         List<FileDir> fileDirs = new ArrayList<>();
-        FileDir fileDir;
-        for (File file : files) {
 
+        for (File file : files) {
+            FileDir fileDir = null;
             if (file.isDirectory()) {
                 fileDir = new FileDir();
                 fileDir.setType("dir");
@@ -234,9 +234,13 @@ public class FileServiceImpl implements IFileService {
                 String fileId = fileName.substring(0, fileName.lastIndexOf("."));
                 // 查询数据库
                 FileRev fileRev = fileRevMapper.selectByPrimaryKey(fileId);
-                fileDir = new FileDir(fileRev);
+                if (fileRev != null) {
+                    fileDir = new FileDir(fileRev);
+                }
             }
-            fileDirs.add(fileDir);
+            if (fileDir != null) {
+                fileDirs.add(fileDir);
+            }
         }
 
         return Result.ok(fileDirs);
