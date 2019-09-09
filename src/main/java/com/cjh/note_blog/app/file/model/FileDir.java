@@ -50,6 +50,10 @@ public class FileDir {
     String author;
 
     String protective;
+    /**
+     * 文件长度
+     */
+    Long length = 0L;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
@@ -137,5 +141,13 @@ public class FileDir {
 
     public void setCount(Integer count) {
         this.count = count;
+    }
+
+    public Long getLength() {
+        return length;
+    }
+
+    public void setLength(Long length) {
+        this.length = length;
     }
 }

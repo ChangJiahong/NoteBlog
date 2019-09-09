@@ -1,5 +1,6 @@
 package com.cjh.note_blog.app.file.controller;
 
+import com.cjh.note_blog.annotations.AllowHeaders;
 import com.cjh.note_blog.annotations.PassToken;
 import com.cjh.note_blog.annotations.UserLoginToken;
 import com.cjh.note_blog.app.file.model.FileDir;
@@ -162,10 +163,11 @@ public class FileController extends BaseController {
         if (result.isSuccess()) {
             try {
                 FileRev fileRev = result.getData();
-                File file = new File(webConfig.fileStorageRootPath+ fileRev.getPath());
+                File file = new File(webConfig.fileStorageRootPath + fileRev.getPath());
                 response.setHeader("content-type", fileRev.getType());
                 response.setContentType(fileRev.getType());
                 response.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + URLEncoder.encode(fileRev.getName(), "UTF-8"));
+                response.setHeader("Content-Length", file.length() + "");
                 FileUtils.copyFile(file, response.getOutputStream());
                 LOGGER.info("【下载文件】：" + fileRev.getName());
                 return null;

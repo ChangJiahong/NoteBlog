@@ -42,17 +42,6 @@ public class FileServiceImpl implements IFileService {
     @Autowired
     FileRevMapper fileRevMapper;
 
-
-    /**
-     * 获取当前用户的文件夹的路径
-     *
-     * @param email
-     * @return
-     */
-    private String getFilePathRoot(String email) {
-        return webConfig.fileStorageRootPath;
-    }
-
     /**
      * 多文件保存
      *
@@ -237,6 +226,7 @@ public class FileServiceImpl implements IFileService {
                 FileRev fileRev = fileRevMapper.selectByPrimaryKey(fileId);
                 if (fileRev != null) {
                     fileDir = new FileDir(fileRev);
+                    fileDir.setLength(file.length());
                 }
             }
             if (fileDir != null) {
