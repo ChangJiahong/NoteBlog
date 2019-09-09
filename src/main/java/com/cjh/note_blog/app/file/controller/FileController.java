@@ -13,11 +13,14 @@ import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.FileRev;
 import com.cjh.note_blog.pojo.DO.User;
 import com.cjh.note_blog.pojo.VO.RestResponse;
+import com.cjh.note_blog.utils.FileReadUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.catalina.connector.ClientAbortException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +30,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.URLEncoder;
 import java.util.List;
 
@@ -151,6 +156,7 @@ public class FileController extends BaseController {
             @ApiImplicitParam(name = "token", value = "身份令牌", dataType = "string", paramType = "header"),
             @ApiImplicitParam(name = "fileId", value = "文件id", dataType = "string", paramType = "path"),
     })
+    @AllowHeaders({"Accept-Ranges"})
     @PassToken
     @GetMapping("/download/{fileId}")
     public RestResponse download(@PathVariable(value = "fileId") String fileId,
@@ -164,11 +170,53 @@ public class FileController extends BaseController {
             try {
                 FileRev fileRev = result.getData();
                 File file = new File(webConfig.fileStorageRootPath + fileRev.getPath());
-                response.setHeader("content-type", fileRev.getType());
+
+                //开始下载位置
+                long startByte = 0;
+                //结束下载位置
+                long endByte = file.length() - 1;
+                String range = request.getHeader("Accept-Ranges");
+                if (StringUtils.isNotBlank(range) && range.startsWith("bytes=")) {
+                    range = range.substring(range.lastIndexOf("=") + 1).trim();
+                    String[] ranges = range.split("-");
+                    try {
+                        //判断range的类型
+                        if (ranges.length == 1) {
+                            //类型一：bytes=-2343
+                            if (range.startsWith("-")) {
+                                endByte = Long.parseLong(ranges[0]);
+                            }
+                            //类型二：bytes=2343-
+                            else if (range.endsWith("-")) {
+                                startByte = Long.parseLong(ranges[0]);
+                            }
+                        }
+                        //类型三：bytes=22-2343
+                        else if (ranges.length == 2) {
+                            startByte = Long.parseLong(ranges[0]);
+                            endByte = Long.parseLong(ranges[1]);
+                        }
+
+                    } catch (NumberFormatException e) {
+                        startByte = 0;
+                        endByte = file.length() - 1;
+                    }
+                    //坑爹地方一：看代码
+                    response.setHeader("Accept-Ranges", "bytes");
+                    //坑爹地方二：http状态码要为206
+                    response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+
+                }
+                long contentLength = endByte - startByte + 1;
+                response.setHeader("Content-Type", fileRev.getType());
                 response.setContentType(fileRev.getType());
                 response.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + URLEncoder.encode(fileRev.getName(), "UTF-8"));
-                response.setHeader("Content-Length", file.length() + "");
-                FileUtils.copyFile(file, response.getOutputStream());
+                //坑爹地方三：Content-Range，格式为
+                // [要下载的开始位置]-[结束位置]/[文件总大小]
+                response.setHeader("Content-Range", "bytes " + startByte + "-" + endByte + "/" + file.length());
+                response.setHeader("Content-Length", contentLength + "");
+
+                writeFileToResponseFromStartAndEnd(file, response, startByte, endByte);
                 LOGGER.info("【下载文件】：" + fileRev.getName());
                 return null;
             } catch (IOException e) {
@@ -203,6 +251,61 @@ public class FileController extends BaseController {
             return RestResponse.fail(result);
         }
         return RestResponse.ok(result);
+    }
+
+    /**
+     * 写入文件
+     *
+     * @param fromFile 源文件
+     * @param response 响应
+     * @param start 开始字节
+     * @param end 结束字节
+     */
+    private void writeFileToResponseFromStartAndEnd(File fromFile, HttpServletResponse response, long start, long end) {
+        long contentLength = end - start + 1;
+        LOGGER.info("内容长度：" + contentLength);
+        BufferedOutputStream outputStream = null;
+        RandomAccessFile randomAccessFile = null;
+        //已传送数据大小
+        long transmitted = 0;
+        try {
+            randomAccessFile = new RandomAccessFile(fromFile, "r");
+            outputStream = new BufferedOutputStream(response.getOutputStream());
+            byte[] buff = new byte[4096];
+            int len = 0;
+            randomAccessFile.seek(start);
+            //坑爹地方四：判断是否到了最后不足4096（buff的length）个byte这个逻辑（(transmitted + len) <= contentLength）要放前面！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+            //不然会会先读取randomAccessFile，造成后面读取位置出错，找了一天才发现问题所在
+            while ((transmitted + len) <= contentLength && (len = randomAccessFile.read(buff)) != -1) {
+                outputStream.write(buff, 0, len);
+                transmitted += len;
+            }
+            //处理不足buff.length部分
+            if (transmitted < contentLength) {
+                len = randomAccessFile.read(buff, 0, (int) (contentLength - transmitted));
+                outputStream.write(buff, 0, len);
+                transmitted += len;
+            }
+
+            outputStream.flush();
+            response.flushBuffer();
+            randomAccessFile.close();
+            LOGGER.info("下载完毕：" + start + "-" + end + "：" + transmitted);
+
+        } catch (ClientAbortException e) {
+            LOGGER.info("用户停止下载：" + start + "-" + end + "：" + transmitted);
+            //捕获此异常表示拥护停止下载
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (randomAccessFile != null) {
+                    randomAccessFile.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }
