@@ -214,7 +214,7 @@ public class FileController extends BaseController {
                 //坑爹地方三：Content-Range，格式为
                 // [要下载的开始位置]-[结束位置]/[文件总大小]
                 response.setHeader("Content-Range", "bytes " + startByte + "-" + endByte + "/" + file.length());
-                response.setHeader("Content-Length", contentLength + "");
+
 
                 writeFileToResponseFromStartAndEnd(file, response, startByte, endByte);
                 LOGGER.info("【下载文件】：" + fileRev.getName());
@@ -290,6 +290,7 @@ public class FileController extends BaseController {
             outputStream.flush();
             response.flushBuffer();
             randomAccessFile.close();
+            response.setHeader("Content-Length", transmitted + "");
             LOGGER.info("下载完毕：" + start + "-" + end + "：" + transmitted);
 
         } catch (ClientAbortException e) {
