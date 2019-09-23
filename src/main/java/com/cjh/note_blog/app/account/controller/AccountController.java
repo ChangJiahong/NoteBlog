@@ -1,16 +1,18 @@
 package com.cjh.note_blog.app.account.controller;
 
+import com.cjh.note_blog.app.account.model.UserModel;
 import com.cjh.note_blog.app.account.service.IAccountService;
 import com.cjh.note_blog.annotations.PassToken;
 import com.cjh.note_blog.annotations.UserLoginToken;
 import com.cjh.note_blog.constant.StatusCode;
 import com.cjh.note_blog.constant.WebConst;
-import com.cjh.note_blog.controller.BaseController;
+import com.cjh.note_blog.base.controller.BaseController;
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.Role;
 import com.cjh.note_blog.pojo.DO.User;
 import com.cjh.note_blog.pojo.VO.RestResponse;
 import com.cjh.note_blog.utils.MD5;
+import com.cjh.note_blog.utils.PojoUtils;
 import com.cjh.note_blog.utils.TokenUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -126,7 +128,6 @@ public class AccountController extends BaseController {
      * 获取登录用户信息
      * 基础接口，可以用来验证token是否有效
      *
-     * @param request 请求对象
      * @return 统一返回对象
      */
     @ApiOperation(value = "获取登录用户信息", notes = "获取登录用户信息")
@@ -135,12 +136,33 @@ public class AccountController extends BaseController {
     })
     @UserLoginToken
     @GetMapping("/user")
-    public RestResponse user(HttpServletRequest request) {
-        User user = getUser(request);
-        if (user!=null) {
-            return RestResponse.ok(user);
+    public RestResponse user() {
+        User user = getUser();
+        UserModel userModel = PojoUtils.copyToModel(user, UserModel.class);
+        if (userModel != null) {
+            return RestResponse.ok(userModel);
         }
         return RestResponse.fail();
+    }
+
+    /**
+     * 获取用户信息
+     *
+     * @param username 用户名
+     * @return 统一返回对象
+     */
+    @ApiOperation(value = "获取用户信息", notes = "获取用户信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "username", value = "用户名", dataType = "string", paramType = "path")
+    })
+    @PassToken
+    @GetMapping("/user/{username}")
+    public RestResponse userByName(@PathVariable(value = "username") String username) {
+        Result<UserModel> result = accountService.getUserByName(username);
+        if (result.isSuccess()) {
+            return RestResponse.ok(result);
+        }
+        return RestResponse.fail(result);
     }
 
     /**
@@ -159,7 +181,7 @@ public class AccountController extends BaseController {
     @UserLoginToken
     @PostMapping("/logout")
     public RestResponse logout(HttpServletRequest request, HttpServletResponse response) {
-        User user = getUser(request);
+        User user = getUser();
         if (user != null) {
             request.removeAttribute(WebConst.USER_LOGIN);
             // 从缓存移除用户信息
@@ -178,8 +200,6 @@ public class AccountController extends BaseController {
      * 【管理员权限】
      * 注册 管理员以上级别用户才能注册账户
      *
-     * @param request
-     * @param response
      * @param user
      * @return
      */
@@ -190,9 +210,8 @@ public class AccountController extends BaseController {
     })
     @UserLoginToken(Role.ADMIN)
     @PostMapping("/register")
-    public RestResponse register(HttpServletRequest request, HttpServletResponse response,
-                                 @RequestBody User user) {
-
+    public RestResponse register(@RequestBody User user) {
+        // TODO: 注册
         return RestResponse.ok();
     }
 

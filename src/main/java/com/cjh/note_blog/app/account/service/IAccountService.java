@@ -1,5 +1,6 @@
 package com.cjh.note_blog.app.account.service;
 
+import com.cjh.note_blog.app.account.model.UserModel;
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.User;
 
@@ -19,4 +20,10 @@ public interface IAccountService {
      */
     public Result<User> loginByEmailOrUsername(String email, String password);
 
+    /**
+     * 获取用户信息
+     * @param username
+     * @return
+     */
+    Result<UserModel> getUserByName(String username);
 }

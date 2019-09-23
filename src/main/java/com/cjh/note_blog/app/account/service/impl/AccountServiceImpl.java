@@ -1,5 +1,6 @@
 package com.cjh.note_blog.app.account.service.impl;
 
+import com.cjh.note_blog.app.account.model.UserModel;
 import com.cjh.note_blog.app.cache.service.ICacheService;
 import com.cjh.note_blog.constant.StatusCode;
 import com.cjh.note_blog.mapper.UserMapper;
@@ -8,6 +9,7 @@ import com.cjh.note_blog.pojo.DO.User;
 import com.cjh.note_blog.app.account.service.IAccountService;
 import com.cjh.note_blog.utils.MD5;
 import com.cjh.note_blog.utils.PatternKit;
+import com.cjh.note_blog.utils.PojoUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -70,5 +72,27 @@ public class AccountServiceImpl implements IAccountService {
                 return Result.fail(StatusCode.PasswordMistake);
             }
         }
+    }
+
+    /**
+     * 获取用户信息
+     *
+     * @param username
+     * @return
+     */
+    @Override
+    public Result<UserModel> getUserByName(String username) {
+        if (StringUtils.isBlank(username)) {
+            return Result.fail(StatusCode.ParameterIsNull);
+        }
+
+        User user = userMapper.selectUserByUsername(username);
+        if (user == null) {
+            return Result.fail(StatusCode.DataNotFound);
+        }
+        user.setPassword(null);
+        UserModel userModel = PojoUtils.copyToModelExclude(user, UserModel.class
+                , new String[]{"created", "roles", "uid"});
+        return Result.ok(userModel);
     }
 }
