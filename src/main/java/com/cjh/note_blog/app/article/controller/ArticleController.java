@@ -6,7 +6,6 @@ import com.cjh.note_blog.annotations.PassToken;
 import com.cjh.note_blog.annotations.UserLoginToken;
 import com.cjh.note_blog.app.article.model.ArticleModel;
 import com.cjh.note_blog.constant.StatusCode;
-import com.cjh.note_blog.controller.BaseController;
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.Article;
 import com.cjh.note_blog.pojo.DO.User;
@@ -21,9 +20,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.Errors;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import com.cjh.note_blog.base.controller.BaseController;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.Objects;
 
 /**
  * ：
@@ -44,45 +44,142 @@ public class ArticleController extends BaseController {
     @Autowired
     private IArticleService articleService;
 
+    /* ################################# */
+    /* 一般接口 */
+
     /**
-     * 【公共方法】【免验证】
-     * 获取文章集合
-     * 当分类为空时，默认查询全部
+     * 获取推荐文章
      *
-     * @param typeName - 分类标签
-     * @param type     - tag or category ; 是分类还是标签
-     * @param page     页码
-     * @param size     单页大小
-     * @return 统一返回对象
+     * @param page 页码
+     * @param size 页面大小
+     * @return
      */
-    @ApiOperation(value = "获取文章集合", notes = "获取文章集合, 可根据分类标签获取(tag or category.)。\n当分类为空时，默认查询全部")
+    @ApiOperation(value = "获取推荐文章", notes = "获取推荐文章")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "type", value = "分类, 只接受'tag' or 'category'", dataType = "string", paramType = "query"),
-            @ApiImplicitParam(name = "typeName", value = "分类标签名", dataType = "string", paramType = "query"),
-            @ApiImplicitParam(name = "page", value = "页码", defaultValue = "1", dataType = "int", paramType = "query"),
-            @ApiImplicitParam(name = "size", value = "单页大小", defaultValue = "12", dataType = "int", paramType = "query")
+            @ApiImplicitParam(name = "page", value = "页码", dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "size", value = "页面大小", dataType = "string", paramType = "query"),
     })
     @PassToken
     @GetMapping({"", "/"})
-    public RestResponse getArticles(@RequestParam(required = false)
-                                            String type,
-                                    @RequestParam(required = false)
-                                            String typeName,
-                                    @RequestParam(required = false, defaultValue = "1")
-                                            Integer page,
-                                    @RequestParam(required = false, defaultValue = "12")
-                                            Integer size,
-                                    HttpServletRequest request) {
-
-
-        String username = getUsername(request);
-
-        Result<PageInfo<ArticleModel>> listResult = articleService.getArticles(type, typeName, page, size, username);
-
+    public RestResponse recommendArticles(@RequestParam(required = false, defaultValue = "1")
+                                                  Integer page,
+                                          @RequestParam(required = false, defaultValue = "12")
+                                                  Integer size) {
+        Result<PageInfo<ArticleModel>> listResult = articleService.recommendArticles(page, size);
         if (!listResult.isSuccess()) {
             return RestResponse.fail(listResult);
         }
+        return RestResponse.ok(listResult);
+    }
 
+    /**
+     * 获取标签归档
+     *
+     * @param page 页码
+     * @param size 页面大小
+     * @return 统一返回对象
+     */
+    @ApiOperation(value = "获取标签归档", notes = "获取标签归档")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "页码", dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "size", value = "页面大小", dataType = "string", paramType = "query"),
+    })
+    @PassToken
+    @GetMapping("/tag")
+    public RestResponse getAllTagArchives(@RequestParam(required = false, defaultValue = "1")
+                                                  Integer page,
+                                          @RequestParam(required = false, defaultValue = "12")
+                                                  Integer size) {
+
+        Result<PageInfo<ArchiveModel>> listResult = articleService.getAllTagArchives(page, size);
+        if (!listResult.isSuccess()) {
+            return RestResponse.fail(listResult);
+        }
+        return RestResponse.ok(listResult);
+    }
+
+
+    /**
+     * 根据文章标签获取
+     *
+     * @param page 页码
+     * @param size 页面大小
+     * @param tag 标签名
+     * @return 统一返回对象
+     */
+    @ApiOperation(value = "根据标签获取文章", notes = "根据标签获取文章")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "页码", dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "size", value = "页面大小", dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "tag", value = "标签名", dataType = "string", paramType = "path")
+    })
+    @PassToken
+    @GetMapping("/tag/{tag}")
+    public RestResponse getAllArticlesByTag(@RequestParam(required = false, defaultValue = "1")
+                                                    Integer page,
+                                            @RequestParam(required = false, defaultValue = "12")
+                                                    Integer size,
+                                            @PathVariable(value = "tag") String tag) {
+
+        Result<PageInfo<ArticleModel>> listResult = articleService.getAllArticlesByTag(page, size, tag);
+        if (!listResult.isSuccess()) {
+            return RestResponse.fail(listResult);
+        }
+        return RestResponse.ok(listResult);
+    }
+
+    /**
+     * 获取分类归档
+     *
+     * @param page 页码
+     * @param size 页面大小
+     * @return 统一返回对象
+     */
+    @ApiOperation(value = "获取分类归档", notes = "获取分类归档")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "页码", dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "size", value = "页面大小", dataType = "string", paramType = "query")
+    })
+    @PassToken
+    @GetMapping("/category")
+    public RestResponse getAllCategoryArchives(@RequestParam(required = false, defaultValue = "1")
+                                                       Integer page,
+                                               @RequestParam(required = false, defaultValue = "12")
+                                                       Integer size) {
+
+        Result<PageInfo<ArchiveModel>> listResult = articleService.getAllCategoryArchives(page, size);
+        if (!listResult.isSuccess()) {
+            return RestResponse.fail(listResult);
+        }
+        return RestResponse.ok(listResult);
+    }
+
+    /**
+     * 根据文章分类获取
+     *
+     * @param page 页码
+     * @param size 页面大小
+     * @param category 分类名
+     * @return 统一返回对象
+     */
+    @ApiOperation(value = "根据分类获取文章", notes = "根据分类获取文章")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "页码", dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "size", value = "页面大小", dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "category", value = "分类名", dataType = "string", paramType = "path")
+    })
+    @PassToken
+    @GetMapping("/category/{category}")
+    public RestResponse getAllArticlesByCategory(@RequestParam(required = false, defaultValue = "1")
+                                                         Integer page,
+                                                 @RequestParam(required = false, defaultValue = "12")
+                                                         Integer size,
+                                                 @PathVariable(value = "category") String category) {
+
+        Result<PageInfo<ArticleModel>> listResult = articleService.getAllArticlesByCategory(page, size, category);
+        if (!listResult.isSuccess()) {
+            return RestResponse.fail(listResult);
+        }
         return RestResponse.ok(listResult);
     }
 
@@ -90,7 +187,9 @@ public class ArticleController extends BaseController {
      * 【公共方法】【免验证】
      * 根据文章id|别名 获取文章信息
      *
+     * @param contentType 文章内容格式
      * @param artName 文章id或者别名
+     * @return 统一返回对象
      */
     @ApiOperation(value = "获取单个已发布文章", notes = "获取单个已发布文章详细内容")
     @ApiImplicitParams({
@@ -101,12 +200,9 @@ public class ArticleController extends BaseController {
     @PassToken
     @GetMapping("/{artName}")
     public RestResponse getArticle(@PathVariable String artName,
-                                   // 点击率
-                                   HttpServletRequest request,
                                    @RequestHeader(value = "article-type", defaultValue = "md") String contentType) {
 
-        String username = getUsername(request);
-        Result<ArticleModel> result = articleService.getArticleByArtName(artName, contentType, username);
+        Result<ArticleModel> result = articleService.getArticleByArtName(artName, contentType);
         if (!result.isSuccess()) {
             return RestResponse.fail(result);
         }
@@ -119,28 +215,58 @@ public class ArticleController extends BaseController {
      * 获取文章归档
      *
      * @param page 页码
-     * @param size 大小
-     * @return
+     * @param size 页面大小
+     * @return 统一返回对象
      */
-    @ApiOperation(value = "获取归档", notes = "获取归档信息")
+    @ApiOperation(value = "获取时间归档", notes = "获取时间归档信息")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", value = "页码", defaultValue = "1", dataType = "int", paramType = "query"),
             @ApiImplicitParam(name = "size", value = "单页大小", defaultValue = "12", dataType = "int", paramType = "query")
     })
     @PassToken
     @GetMapping("/archives")
-    public RestResponse getArchive(@RequestParam(required = false, defaultValue = "1")
-                                           Integer page,
-                                   @RequestParam(required = false, defaultValue = "12")
-                                           Integer size,
-                                   HttpServletRequest request) {
-        String username = getUsername(request);
-        Result<PageInfo<ArchiveModel>> result = articleService.getArchives(page, size, username);
+    public RestResponse getArchives(@RequestParam(required = false, defaultValue = "1")
+                                            Integer page,
+                                    @RequestParam(required = false, defaultValue = "12")
+                                            Integer size) {
+        Result<PageInfo<ArchiveModel>> result = articleService.getAllTimeArchives(page, size);
         if (!result.isSuccess()) {
             return RestResponse.fail(result);
         }
         return RestResponse.ok(result);
     }
+
+    /**
+     *
+     * @param username
+     * @param page 页码
+     * @param size 页面大小
+     * @param username 用户名
+     * @return 统一返回对象
+     */
+    @ApiOperation(value = "获取该用户文章列表", notes = "获取该用户文章列表,仅已发布")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "页码", defaultValue = "1", dataType = "int", paramType = "query"),
+            @ApiImplicitParam(name = "size", value = "单页大小", defaultValue = "12", dataType = "int", paramType = "query"),
+            @ApiImplicitParam(name = "username", value = "用户名", defaultValue = "", dataType = "string", paramType = "query")
+    })
+    @PassToken
+    @GetMapping("/list")
+    public RestResponse getArticleList(@RequestParam(value = "username") String username,
+                                       @RequestParam(required = false, defaultValue = "1")
+                                               Integer page,
+                                       @RequestParam(required = false, defaultValue = "12")
+                                               Integer size) {
+        Result<PageInfo<ArticleModel>> result =
+                articleService.getArticlesByAuthor(username, page, size, ArticleModel.PUBLISH);
+        if (!result.isSuccess()) {
+            return RestResponse.fail(result);
+        }
+        return RestResponse.ok(result);
+    }
+
+    /* ###################################################### */
+    /* 需要登陆 */
 
     /**
      * 【私有方法】
@@ -148,23 +274,21 @@ public class ArticleController extends BaseController {
      * 获取当前用户的所有文章归档
      *
      * @param page 页码
-     * @param size 大小
-     * @return
+     * @param size 页面大小
+     * @return 统一返回对象
      */
-    @ApiOperation(value = "获取个人归档", notes = "获取个人归档信息")
+    @ApiOperation(value = "获取个人时间归档", notes = "获取个人时间归档信息")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", value = "页码", defaultValue = "1", dataType = "int", paramType = "query"),
             @ApiImplicitParam(name = "size", value = "单页大小", defaultValue = "12", dataType = "int", paramType = "query")
     })
     @GetMapping("/u/archives")
-    public RestResponse getArchivesByUser(@RequestParam(required = false, defaultValue = "1")
+    public RestResponse getUArchives(@RequestParam(required = false, defaultValue = "1")
                                                   Integer page,
                                           @RequestParam(required = false, defaultValue = "12")
-                                                  Integer size,
-                                          HttpServletRequest request) {
+                                                  Integer size) {
 
-        User user = getUser(request);
-        Result<PageInfo<ArchiveModel>> result = articleService.getArchives(page, size, user.getUsername());
+        Result<PageInfo<ArchiveModel>> result = articleService.getPersonalTimeArchives(page, size);
         if (!result.isSuccess()) {
             return RestResponse.fail(result);
         }
@@ -172,28 +296,136 @@ public class ArticleController extends BaseController {
     }
 
     /**
+     * 获取登录用户标签归档
+     *
+     * @param page 页码
+     * @param size 页面大小
+     * @return 统一返回对象
+     */
+    @ApiOperation(value = "获取登录用户标签归档", notes = "获取登录用户标签归档")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "页码", dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "size", value = "页面大小", dataType = "string", paramType = "query")
+    })
+    @PassToken
+    @GetMapping("/u/tag")
+    public RestResponse getUTagArchives(@RequestParam(required = false, defaultValue = "1")
+                                                  Integer page,
+                                          @RequestParam(required = false, defaultValue = "12")
+                                                  Integer size) {
+
+        Result<PageInfo<ArchiveModel>> listResult = articleService.getPersonalTagArchives(page, size);
+        if (!listResult.isSuccess()) {
+            return RestResponse.fail(listResult);
+        }
+        return RestResponse.ok(listResult);
+    }
+
+    /**
+     * 根据标签获取登录用户文章
+     *
+     * @param page 页码
+     * @param size 页面大小
+     * @param tag  标签名
+     * @return 统一返回对象
+     */
+    @ApiOperation(value = "根据标签获取登录用户文章", notes = "根据标签获取登录用户文章")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "页码", dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "size", value = "页面大小", dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "tag", value = "标签名", dataType = "string", paramType = "path")
+    })
+    @PassToken
+    @GetMapping("/u/tag/{tag}")
+    public RestResponse getUArticlesByTag(@RequestParam(required = false, defaultValue = "1")
+                                                    Integer page,
+                                            @RequestParam(required = false, defaultValue = "12")
+                                                    Integer size,
+                                            @PathVariable(value = "tag") String tag) {
+
+        Result<PageInfo<ArticleModel>> listResult = articleService.getPersonalArticlesByTag(page, size, tag);
+        if (!listResult.isSuccess()) {
+            return RestResponse.fail(listResult);
+        }
+        return RestResponse.ok(listResult);
+    }
+
+    /**
+     * 获取登录用户分类归档
+     *
+     * @param page 页码
+     * @param size 页面大小
+     * @return 统一返回对象
+     */
+    @ApiOperation(value = "获取登录用户分类归档", notes = "获取登录用户分类归档")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "页码", dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "size", value = "页面大小", dataType = "string", paramType = "query")
+    })
+    @PassToken
+    @GetMapping("/u/category")
+    public RestResponse getUCategoryArchives(@RequestParam(required = false, defaultValue = "1")
+                                                       Integer page,
+                                               @RequestParam(required = false, defaultValue = "12")
+                                                       Integer size) {
+
+        Result<PageInfo<ArchiveModel>> listResult = articleService.getPersonalCategoryArchives(page, size);
+        if (!listResult.isSuccess()) {
+            return RestResponse.fail(listResult);
+        }
+        return RestResponse.ok(listResult);
+    }
+
+    /**
+     * 根据分类获取登录用户文章
+     *
+     * @param page 页码
+     * @param size 页面大小
+     * @param category 分类名
+     * @return 统一返回对象
+     */
+    @ApiOperation(value = "根据分类获取登录用户文章", notes = "根据分类获取登录用户文章")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "页码", dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "size", value = "页面大小", dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "category", value = "分类名", dataType = "string", paramType = "path")
+    })
+    @PassToken
+    @GetMapping("/u/category/{category}")
+    public RestResponse getUArticlesByCategory(@RequestParam(required = false, defaultValue = "1")
+                                                         Integer page,
+                                                 @RequestParam(required = false, defaultValue = "12")
+                                                         Integer size,
+                                                 @PathVariable(value = "category") String category) {
+
+        Result<PageInfo<ArticleModel>> listResult = articleService.getPersonalArticlesByCategory(page, size, category);
+        if (!listResult.isSuccess()) {
+            return RestResponse.fail(listResult);
+        }
+        return RestResponse.ok(listResult);
+    }
+
+    /**
      * 【私有方法】【验证】
      * 【个人用户权限】
      * 获取该用户所有文章列表
      *
-     * @param page    页码
-     * @param size    大小
-     * @param request 请求对象
+     * @param page 页码
+     * @param size 页面大小
      * @return 统一返回对象
      */
-    @ApiOperation(value = "获取该用户所有文章列表", notes = "获取该用户所有文章列表")
+    @ApiOperation(value = "获取登录用户文章列表", notes = "获取该用户文章列表,登录用户返回全部文章")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", value = "页码", defaultValue = "1", dataType = "int", paramType = "query"),
             @ApiImplicitParam(name = "size", value = "单页大小", defaultValue = "12", dataType = "int", paramType = "query")
     })
     @GetMapping("/u/list")
-    public RestResponse getArticleList(@RequestParam(required = false, defaultValue = "1")
-                                               Integer page,
-                                       @RequestParam(required = false, defaultValue = "12")
-                                               Integer size,
-                                       HttpServletRequest request) {
-        User user = getUser(request);
-        Result<PageInfo<ArticleModel>> result = articleService.getArticleList(user.getUsername(), page, size);
+    public RestResponse getUArticleList(@RequestParam(required = false, defaultValue = "1")
+                                                Integer page,
+                                        @RequestParam(required = false, defaultValue = "12")
+                                                Integer size) {
+
+        Result<PageInfo<ArticleModel>> result = articleService.getArticlesByAuthor(getUsername(), page, size, null);
         if (!result.isSuccess()) {
             return RestResponse.fail(result);
         }
@@ -205,23 +437,21 @@ public class ArticleController extends BaseController {
      * 【个人用户权限】
      * 查询个人文章 只能浏览当前用户的文章，包括未发布的
      *
+     * @param contentType 文章内容格式
      * @param artName 文章id|别名
-     * @param request 请求对象
      * @return 统一返回对象
      */
-    @ApiOperation(value = "查询个人文章", notes = "获取浏览当前用户的文章详细内容，包括未发布的，需登录")
+    @ApiOperation(value = "预览个人文章", notes = "获取浏览当前用户的文章详细内容，包括未发布的，需登录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "token", value = "身份令牌", dataType = "string", paramType = "header"),
             @ApiImplicitParam(name = "article-type", value = "文章内容格式md html", dataType = "string", paramType = "header"),
             @ApiImplicitParam(name = "artName", value = "文章id或者别名", dataType = "string", paramType = "path"),
     })
     @GetMapping("/u/pre/{artName}")
-    public RestResponse preview(@PathVariable String artName, HttpServletRequest request,
+    public RestResponse preview(@PathVariable String artName,
                                 @RequestHeader(value = "article-type", defaultValue = "md") String contentType) {
 
-        User user = getUser(request);
-        String author = user.getUsername();
-        Result<ArticleModel> result = articleService.getPreviewArticleByArtNameAndAuthor(artName, author, contentType);
+        Result<ArticleModel> result = articleService.getPreviewArticle(artName, contentType);
         if (!result.isSuccess()) {
             return RestResponse.fail(result);
         }
@@ -234,7 +464,6 @@ public class ArticleController extends BaseController {
      * 发布文章|保存
      *
      * @param articleModel 文章对象
-     * @param request      请求对象
      * @return 统一返回对象
      */
     @ApiOperation(value = "发布/保存文章", notes = "发布或保存文章，如果有id则保存，没有则新建")
@@ -244,16 +473,15 @@ public class ArticleController extends BaseController {
     })
     @PostMapping("/u")
     public RestResponse publish(@Valid @RequestBody ArticleModel articleModel,
-                                Errors errors,
-                                HttpServletRequest request) {
+                                Errors errors) {
 
-        User user = getUser(request);
+        User user = getUser();
 
 
         if (errors.hasErrors()) {
             LOGGER.info("文章参数错误！");
             // error: 文章参数为空
-            return RestResponse.fail(StatusCode.ParameterVerificationError, errors.getFieldError().getDefaultMessage());
+            return RestResponse.fail(StatusCode.ParameterVerificationError, Objects.requireNonNull(errors.getFieldError()).getDefaultMessage());
         }
 
         // 设置作者id 作者username
@@ -285,18 +513,15 @@ public class ArticleController extends BaseController {
     @ApiOperation(value = "文章状态管理", notes = "更改文章状态（发布or草稿）")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "id", value = "文章id", dataType = "string", paramType = "path"),
-            @ApiImplicitParam(name = "status", value = "状态(publish、draft)", dataType = "string", paramType = "path")
+            @ApiImplicitParam(name = "status", value = "状态(publish、draft)", dataType = "string", paramType = "query")
     })
-    @PostMapping("/u/status/{id}/{status}")
+    @PostMapping("/u/status/{id}")
     public RestResponse articleEnable(@PathVariable(value = "id") Integer id,
                                       @Contains(target = {Article.PUBLISH, Article.DRAFT},
                                               message = "请求参数不正确")
-                                      @PathVariable(value = "status") String status,
-                                      HttpServletRequest request) {
+                                      @RequestParam(value = "status") String status) {
 
-        User user = getUser(request);
-        String author = user.getUsername();
-        Result result = articleService.updateStatus(id, status, author);
+        Result result = articleService.updateStatus(id, status);
 
         if (!result.isSuccess()) {
             return RestResponse.fail(result);
@@ -309,17 +534,18 @@ public class ArticleController extends BaseController {
      * 点赞
      *
      * @param articleId 文章id
-     * @param request   。。。
-     * @return 。。。
+     * @return 统一返回对象
      */
+    @ApiOperation(value = "点赞", notes = "点赞")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "articleId", value = "文章id", dataType = "string", paramType = "path")
+    })
     @PostMapping("/u/like/{articleId}")
-    public RestResponse like(@PathVariable(value = "articleId") String articleId,
-                             HttpServletRequest request) {
+    public RestResponse like(@PathVariable(value = "articleId") String articleId) {
 
-        String username = getUsername(request);
-        Result result = articleService.likes(articleId, username);
+        Result result = articleService.likes(articleId);
 
-        if (!result.isSuccess()){
+        if (!result.isSuccess()) {
             return RestResponse.fail(result);
         }
 
@@ -333,7 +559,7 @@ public class ArticleController extends BaseController {
      * 删除文章
      *
      * @param id 文章id
-     * @return
+     * @return 统一返回对象
      */
     @ApiOperation(value = "删除文章", notes = "删除文章通过文章id")
     @ApiImplicitParams({
@@ -341,12 +567,9 @@ public class ArticleController extends BaseController {
             @ApiImplicitParam(name = "id", value = "文章id", dataType = "int", paramType = "path")
     })
     @DeleteMapping("/u/{id}")
-    public RestResponse delArticleById(@PathVariable Integer id, HttpServletRequest request) {
+    public RestResponse delArticleById(@PathVariable Integer id) {
 
-        User user = getUser(request);
-        String author = user.getUsername();
-
-        Result result = articleService.delArticleById(id, author);
+        Result result = articleService.delArticleById(id);
 
         if (result.isSuccess()) {
             return RestResponse.ok(result);

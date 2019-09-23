@@ -15,14 +15,18 @@
         <result column="created" property="created" jdbcType="TIMESTAMP"/>
         <result column="status" property="status" jdbcType="CHAR"/>
         <result column="content" property="content" jdbcType="LONGVARCHAR"/>
-        <result column="front_cover_img_url" property="frontCoverImgUrl" jdbcType="VARCHAR" />
-
+        <result column="front_cover_img_url" property="frontCoverImgUrl" jdbcType="VARCHAR"/>
 
         <collection property="types" javaType="list"
                     select="com.cjh.note_blog.mapper.TypeMapper.selectTypesByAid"
                     column="aid"></collection>
 
+    </resultMap>
 
+    <!--    归档对象-->
+    <resultMap id="archiveVoMap" type="com.cjh.note_blog.app.article.model.ArchiveModel">
+        <id column="name" property="name"/>
+        <result column="count" property="count"/>
     </resultMap>
 
     <!--    返回参数列表-->
@@ -51,6 +55,65 @@
         </choose>
     </sql>
 
+
+    <select id="selectAllArticlesAndAuthorIfNotNull" resultMap="BaseResultMap">
+        select
+        <include refid="param"/>
+        from article as a
+        left join article_type ac on a.id = ac.aid
+        left join `type` t on ac.tid = t.id
+        <where>
+            <if test="status != null and status != ''">
+                a.`status` = #{status}
+            </if>
+            <if test="author != null and author != ''">
+                and author = #{author}
+            </if>
+        </where>
+        ORDER BY created DESC
+    </select>
+
+    <!--    查询type的文章-->
+    <select id="selectArticlesByTypeAndAuthorIfNotNull" resultMap="BaseResultMap">
+        select
+        <include refid="param"/>
+        from article as a
+        left join article_type ac on a.id = ac.aid
+        left join `type` t on ac.tid = t.id
+        <where>
+            <if test="status != null and status != ''">
+                a.`status` = #{status}
+            </if>
+            <if test="(type != null and type != '') and (typeName != null and typeName != '')">
+                and t.name = #{typeName} and t.type = #{type}
+            </if>
+            <if test="author != null and author != ''">
+                and a.author = #{author}
+            </if>
+        </where>
+        ORDER BY created DESC
+    </select>
+
+    <!--    获取type归档，如果作者不为空则获取该作者的type归档-->
+    <select id="selectTypeArchivesByAuthorIfNotNull" resultMap="archiveVoMap">
+        SELECT t.name as name, count( * ) AS count
+        FROM article a
+        LEFT JOIN article_type ac ON a.id = ac.aid
+        LEFT JOIN `type` t ON ac.tid = t.id
+        <where>
+            t.type = #{type}
+            <if test="status != null and status != ''">
+                and a.`status` = #{status}
+            </if>
+            <if test="author != null and author != ''">
+                and a.author = #{author}
+            </if>
+        </where>
+        GROUP BY name
+        ORDER BY name DESC
+    </select>
+
+
     <!--    查询发布的文章通过id或者别名-->
     <select id="selectByArtName" resultMap="BaseResultMap">
         select
@@ -59,11 +122,30 @@
         from article as a
         <where>
             <include refid="byId"/>
-            and a.`status` = 'publish'
+            <if test="status != null and status != ''">
+                and a.`status` = #{status}
+            </if>
         </where>
     </select>
 
-    <!--    查询文章通过id或者别名和作者-->
+    <!--    查询时间归档-->
+    <select id="selectTimeArchivesByAuthorIfNotNull" resultMap="archiveVoMap">
+        select DATE_FORMAT(a.created,'%Y%m') as name,
+        count(*) as count
+        from article a
+        <where>
+            <if test="status != null and status != ''">
+                a.`status` = #{status}
+            </if>
+            <if test="author != null and author != ''">
+                and a.author = #{author}
+            </if>
+        </where>
+        group by name
+        order by name desc
+    </select>
+
+    <!--    查询预览文章通过id或者别名和作者-->
     <select id="selectByArtNameAndAuthor" resultMap="BaseResultMap">
         select
         <include refid="param"/>,
@@ -73,49 +155,6 @@
             <include refid="byId"/>
             and a.author = #{author}
         </where>
-    </select>
-
-    <!--    查询已发布的文章集合，可以选择分类标签条件-->
-    <select id="selectArticles" resultMap="BaseResultMap">
-        select
-        <include refid="param"/>
-        from article as a
-        left join article_type ac on a.id = ac.aid
-        left join `type` t on ac.tid = t.id
-        where a.`status` = 'publish'
-        <if test="(type != null and type != '') and (typeName != null and typeName != '')">
-            and t.name = #{typeName} and t.type = #{type}
-        </if>
-        ORDER BY created DESC
-    </select>
-
-    <!--    归档对象-->
-    <resultMap id="archiveVoMap" type="com.cjh.note_blog.app.article.model.ArchiveModel">
-        <id column="date" property="date"/>
-        <result column="count" property="count"/>
-    </resultMap>
-
-    <!--    查询归档-->
-    <select id="selectArchives" resultMap="archiveVoMap">
-        select DATE_FORMAT(created,'%Y%m') as date,
-               count(*) as count
-        from article
-        where status = 'publish'
-        <if test="username != null and username != ''">
-            and author = #{username}
-        </if>
-        group by date
-        order by date desc
-    </select>
-
-    <!--    查询私人归档-->
-    <select id="selectPersonArchives" resultMap="archiveVoMap">
-        select DATE_FORMAT(created,'%Y%m') as date,
-               count(*) as count
-        from article
-        where status = 'publish' and author = #{username}
-        group by date
-        order by date desc
     </select>
 
     <!--    查询文章通过YYmm日期格式-->
@@ -128,15 +167,6 @@
         <if test="username != null and username != ''">
             and a.author = #{username}
         </if>
-        group by created
-        order by created desc
-    </select>
-
-    <select id="selectArticleByAuthor" resultMap="BaseResultMap">
-        select
-        <include refid="param"/>
-        from article as a
-        where a.author = #{author}
         group by created
         order by created desc
     </select>

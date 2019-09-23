@@ -1,38 +1,45 @@
-package com.cjh.note_blog.controller;
+package com.cjh.note_blog.base;
 
 import com.cjh.note_blog.app.cache.service.ICacheService;
+import com.cjh.note_blog.conf.WebConfig;
 import com.cjh.note_blog.constant.WebConst;
 import com.cjh.note_blog.pojo.DO.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
- * 所有controller的父类
+ * :
  *
  * @author ChangJiahong
- * @date 2019/7/16
+ * @date 2019/9/23
  */
-public abstract class BaseController {
+public abstract class Base {
 
+    @Autowired
+    public WebConfig webConfig;
 
     @Autowired
     public ICacheService webCacheService;
 
-    protected User getUser(HttpServletRequest request){
+    @Autowired
+    public HttpServletRequest request;
+
+    protected User getUser(){
         return (User) request.getAttribute(WebConst.USER_LOGIN);
     }
 
-    protected String getUsername(HttpServletRequest request){
-        User user = getUser(request);
+    protected String getUsername(){
+        User user = getUser();
         if (user!=null){
             return user.getUsername();
         }
         return null;
     }
 
-    protected String getEmail(HttpServletRequest request){
-        User user = getUser(request);
+    protected String getEmail(){
+        User user = getUser();
         if (user!=null){
             return user.getEmail();
         }

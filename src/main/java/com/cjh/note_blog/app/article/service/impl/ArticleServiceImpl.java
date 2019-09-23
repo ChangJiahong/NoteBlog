@@ -2,8 +2,7 @@ package com.cjh.note_blog.app.article.service.impl;
 
 import com.cjh.note_blog.app.article.model.ArticleModel;
 import com.cjh.note_blog.app.article_type_rela.service.IArticleTypeRelaService;
-import com.cjh.note_blog.app.cache.service.ICacheService;
-import com.cjh.note_blog.conf.WebConfig;
+import com.cjh.note_blog.base.service.BaseService;
 import com.cjh.note_blog.constant.StatusCode;
 import com.cjh.note_blog.constant.Table;
 import com.cjh.note_blog.constant.WebConst;
@@ -16,13 +15,13 @@ import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.Article;
 import com.cjh.note_blog.app.article.service.IArticleService;
 import com.cjh.note_blog.app.article.model.ArchiveModel;
+import com.cjh.note_blog.pojo.DO.Type;
 import com.cjh.note_blog.pojo.DO.UserLikesArticle;
 import com.cjh.note_blog.utils.DateUtils;
 import com.cjh.note_blog.utils.MD5;
 import com.cjh.note_blog.utils.MdParser;
-import com.github.pagehelper.PageHelper;
+import com.cjh.note_blog.utils.PojoUtils;
 import com.github.pagehelper.PageInfo;
-import io.swagger.models.auth.In;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,19 +41,13 @@ import java.util.Random;
  * @date 2019/7/17
  */
 @Service
-public class ArticleServiceImpl implements IArticleService {
+public class ArticleServiceImpl extends BaseService implements IArticleService {
 
     @Autowired
     private ArticleMapper articleMapper;
 
     @Autowired
-    private ICacheService webCacheService;
-
-    @Autowired
     private IArticleTypeRelaService relaService;
-
-    @Autowired
-    private WebConfig webConfig;
 
     @Autowired
     private MdParser mdParser;
@@ -66,77 +59,193 @@ public class ArticleServiceImpl implements IArticleService {
     private UserLikesArticleMapper userLikesArticleMapper;
 
     /**
-     * 获取文章集合
-     * 当分类为空时，默认查询全部
+     * 获取推荐文章
      *
-     * @param type     分类标签
-     * @param typeName 分类标签名
-     * @param page     页码
-     * @param size     大小
+     * @param page 页码
+     * @param size 大小
      * @return 统一返回对象
      */
     @Override
-    public Result<PageInfo<ArticleModel>> getArticles(String type, String typeName,
-                                                      int page, int size, String username) {
+    public Result<PageInfo<ArticleModel>> recommendArticles(int page, int size) {
+        // REPAIR: 推荐方案, 最新
 
-        page = page < 0 || page > WebConst.MAX_PAGE ? 1 : page;
+        return getAllArticlesAndAuthorIfNotNull(null, Article.PUBLISH, page, size);
+    }
 
-        size = size < 0 || size > WebConst.MAX_PAGESIZE ? WebConst.DEFAULT_PAGESIZE : size;
+    /**
+     * 获取标签归档
+     *
+     * @param page 页码
+     * @param size 页面大小
+     * @return 统一返回对象
+     */
+    @Override
+    public Result<PageInfo<ArchiveModel>> getAllTagArchives(int page, int size) {
+        return getTypeArchivesByAuthorIfNotNull(Type.TAG, null, page, size);
+    }
 
-        PageHelper.startPage(page, size);
+    /**
+     * 获取个人标签归档
+     *
+     * @param page 页码
+     * @param size 页面大小
+     * @return 统一返回对象
+     */
+    @Override
+    public Result<PageInfo<ArchiveModel>> getPersonalTagArchives(int page, int size) {
+        String author = getUsername();
+        return getTypeArchivesByAuthorIfNotNull(Type.TAG, author, page, size);
+    }
 
-        List<Article> articleList = articleMapper.selectArticles(type, typeName);
-        if (null == articleList || articleList.isEmpty()) {
+    /**
+     * 获取分类归档
+     *
+     * @param page 页码
+     * @param size 页面大小
+     * @return 统一返回对象
+     */
+    @Override
+    public Result<PageInfo<ArchiveModel>> getAllCategoryArchives(int page, int size) {
+        return getTypeArchivesByAuthorIfNotNull(Type.CATEGORY, null, page, size);
+    }
+
+    /**
+     * 获取个人分类归档
+     *
+     * @param page 页码
+     * @param size 页面大小
+     * @return 统一返回对象
+     */
+    @Override
+    public Result<PageInfo<ArchiveModel>> getPersonalCategoryArchives(int page, int size) {
+        String author = getUsername();
+        return getTypeArchivesByAuthorIfNotNull(Type.CATEGORY, author, page, size);
+    }
+
+    /**
+     * 根据标签获取
+     *
+     * @param page 页码
+     * @param size 页面大小
+     * @param tag
+     * @return 统一返回对象
+     */
+    @Override
+    public Result<PageInfo<ArticleModel>> getAllArticlesByTag(int page, int size, String tag) {
+        return getArticlesByTypeAndAuthorIfNotNull(null, tag, Type.TAG, page, size);
+    }
+
+    /**
+     * 根据标签获取个人
+     *
+     * @param page 页码
+     * @param size 页面大小
+     * @param tag
+     * @return 统一返回对象
+     */
+    @Override
+    public Result<PageInfo<ArticleModel>> getPersonalArticlesByTag(int page, int size, String tag) {
+        String author = getUsername();
+        return getArticlesByTypeAndAuthorIfNotNull(author, tag, Type.TAG, page, size);
+    }
+
+    /**
+     * 根据分类获取
+     *
+     * @param page 页码
+     * @param size 页面大小
+     * @param category
+     * @return 统一返回对象
+     */
+    @Override
+    public Result<PageInfo<ArticleModel>> getAllArticlesByCategory(int page, int size, String category) {
+        return getArticlesByTypeAndAuthorIfNotNull(null, category, Type.CATEGORY, page, size);
+    }
+
+    /**
+     * 根据分类获取个人
+     *
+     * @param page 页码
+     * @param size 页面大小
+     * @param category
+     * @return 统一返回对象
+     */
+    @Override
+    public Result<PageInfo<ArticleModel>> getPersonalArticlesByCategory(int page, int size, String category) {
+        String author = getUsername();
+        return getArticlesByTypeAndAuthorIfNotNull(author, category, Type.CATEGORY, page, size);
+    }
+
+    /**
+     * 获取type 文档
+     *
+     * @param page 页码
+     * @param size 页面大小
+     * @param name
+     * @param type
+     * @return 统一返回对象
+     */
+    private Result<PageInfo<ArticleModel>> getArticlesByTypeAndAuthorIfNotNull(String author, String name, String type, int page, int size) {
+        pagination(page, size);
+        List<Article> articles = getArticlesByTypeAndAuthorIfNotNull(author, name, type);
+        if (articles == null || articles.isEmpty()) {
+            return Result.fail(StatusCode.DataNotFound);
+        }
+        PageInfo<ArticleModel> articleModels = getArticleModelPageInfo(articles);
+        return Result.ok(articleModels);
+    }
+
+    /**
+     * 获取种类归档
+     *
+     * @param page 页码
+     * @param size 页面大小
+     * @param type
+     * @return 统一返回对象
+     */
+    private Result<PageInfo<ArchiveModel>> getTypeArchivesByAuthorIfNotNull(String type, String author, int page, int size) {
+        pagination(page, size);
+        List<ArchiveModel> typeArchives = articleMapper.selectTypeArchivesByAuthorIfNotNull(type, author, Article.PUBLISH);
+        if (typeArchives == null || typeArchives.isEmpty()) {
             return Result.fail(StatusCode.DataNotFound);
         }
 
-        PageInfo<ArticleModel> pageInfo = getArticleModelPageInfo(username, articleList);
+        typeArchives.forEach(typeArchive -> {
+            List<Article> articles = getArticlesByTypeAndAuthorIfNotNull(author, typeArchive.getName(), type);
+            // 转换文章访问量,点赞状态
+            List<ArticleModel> archiveModelList = conversionArticles(articles);
+            typeArchive.setArticles(archiveModelList);
+        });
+
+        PageInfo<ArchiveModel> pageInfo = new PageInfo<>(typeArchives);
         return Result.ok(pageInfo);
     }
 
-    /**
-     * 分页
-     * @param username
-     * @param articleList
-     * @return
-     */
-    private PageInfo<ArticleModel> getArticleModelPageInfo(String username, List<Article> articleList) {
-        PageInfo<Article> articlePageInfo = new PageInfo<>(articleList);
-
-        // 转换文章访问量
-        List<ArticleModel> articleModels = conversionArticles(articleList, username);
-
-        PageInfo<ArticleModel> pageInfo = copyPage(articlePageInfo);
-        pageInfo.setList(articleModels);
-        return pageInfo;
+    private List<Article> getArticlesByTypeAndAuthorIfNotNull(String author, String name, String type) {
+        return articleMapper.selectArticlesByTypeAndAuthorIfNotNull(author, type, name, Article.PUBLISH);
     }
 
-
     /**
-     * 页面copy
-     * @param articlePageInfo
-     * @return
+     * 根据文章id|alias获取已发布文章
+     *
+     * @param artName
+     * @return 统一返回对象 result data type: Acticle
      */
-    private PageInfo<ArticleModel> copyPage(PageInfo<Article> articlePageInfo){
-        PageInfo<ArticleModel> articleModelPageInfo = new PageInfo<>();
-        articleModelPageInfo.setEndRow(articlePageInfo.getEndRow());
-        articleModelPageInfo.setHasNextPage(articlePageInfo.isHasNextPage());
-        articleModelPageInfo.setHasPreviousPage(articlePageInfo.isHasPreviousPage());
-        articleModelPageInfo.setIsFirstPage(articlePageInfo.isIsFirstPage());
-        articleModelPageInfo.setIsLastPage(articlePageInfo.isIsLastPage());
-        articleModelPageInfo.setNavigateFirstPage(articlePageInfo.getNavigateFirstPage());
-        articleModelPageInfo.setNavigateLastPage(articlePageInfo.getNavigateLastPage());
-        articleModelPageInfo.setNavigatepageNums(articlePageInfo.getNavigatepageNums());
-        articleModelPageInfo.setNavigatePages(articlePageInfo.getNavigatePages());
-        articleModelPageInfo.setNextPage(articlePageInfo.getNextPage());
-        articleModelPageInfo.setPageNum(articlePageInfo.getPageNum());
-        articleModelPageInfo.setPages(articlePageInfo.getPages());
-        articleModelPageInfo.setPageSize(articlePageInfo.getPageSize());
-        articleModelPageInfo.setPrePage(articlePageInfo.getPrePage());
-        articleModelPageInfo.setSize(articlePageInfo.getSize());
-        articleModelPageInfo.setStartRow(articlePageInfo.getStartRow());
-        articleModelPageInfo.setTotal(articlePageInfo.getTotal());
-        return articleModelPageInfo;
+    @Override
+    public Result<ArticleModel> getArticleByArtName(String artName, String contentType) {
+        if (StringUtils.isBlank(artName)) {
+            // error: 参数为空
+            return Result.fail(StatusCode.ParameterIsNull);
+        }
+        Article article = articleMapper.selectByArtName(artName, StringUtils.isNumeric(artName), Article.PUBLISH);
+        if (article == null) {
+            // error: 未找到
+            return Result.fail(StatusCode.DataNotFound);
+        }
+
+        ArticleModel articleModel = conversionArticle(article, contentType);
+
+        return Result.ok(articleModel);
     }
 
     /**
@@ -144,29 +253,45 @@ public class ArticleServiceImpl implements IArticleService {
      *
      * @param page 页码
      * @param size 大小
+     * @return 统一返回对象 统一返回对象
+     */
+    @Override
+    public Result<PageInfo<ArchiveModel>> getAllTimeArchives(int page, int size) {
+        return getTimeArchivesByAuthorIfNotNull(page, size, null);
+    }
+
+    /**
+     * 获取个人文档归档
+     *
+     * @param page 页码
+     * @param size 大小
      * @return 统一返回对象
      */
     @Override
-    public Result<PageInfo<ArchiveModel>> getArchives(int page, int size) {
-        return getArchives(page, size, null);
+    public Result<PageInfo<ArchiveModel>> getPersonalTimeArchives(int page, int size) {
+        String username = getUsername();
+        return getTimeArchivesByAuthorIfNotNull(page, size, username);
     }
 
-    @Override
-    public Result<PageInfo<ArchiveModel>> getArchives(int page, int size, String username) {
-        page = page < 0 || page > WebConst.MAX_PAGE ? 1 : page;
-
-        size = size < 0 || size > WebConst.MAX_PAGESIZE ? WebConst.DEFAULT_PAGESIZE : size;
-
-        PageHelper.startPage(page, size);
-        List<ArchiveModel> archiveModels = articleMapper.selectArchives(username);
+    /**
+     * 获取时间归档
+     *
+     * @param page 页码
+     * @param size 页面大小
+     * @param author
+     * @return 统一返回对象
+     */
+    private Result<PageInfo<ArchiveModel>> getTimeArchivesByAuthorIfNotNull(int page, int size, String author) {
+        pagination(page, size);
+        List<ArchiveModel> archiveModels = articleMapper.selectTimeArchivesByAuthorIfNotNull(author, Article.PUBLISH);
         if (null == archiveModels || archiveModels.isEmpty()) {
             // error: 没有找到
             return Result.fail(StatusCode.DataNotFound);
         }
         archiveModels.forEach(archiveModel -> {
-            List<Article> articles = articleMapper.selectArticleByDateYm(archiveModel.getDate(), username);
-            // 转换文章访问量
-            List<ArticleModel> archiveModelList = conversionArticles(articles, username);
+            List<Article> articles = articleMapper.selectArticleByDateYm(archiveModel.getName(), author);
+            // 转换文章访问量,点赞状态
+            List<ArticleModel> archiveModelList = conversionArticles(articles);
             archiveModel.setArticles(archiveModelList);
         });
         PageInfo<ArchiveModel> pageInfo = new PageInfo<>(archiveModels);
@@ -176,128 +301,39 @@ public class ArticleServiceImpl implements IArticleService {
     /**
      * 获取当前用户所有文档列表
      *
-     * @param author 作者名
-     * @param page   页码
-     * @param size   大小
-     * @return 统一返回对象
+     * @param page 页码
+     * @param size 大小
+     * @return 统一返回对象 统一返回对象
      */
     @Override
-    public Result<PageInfo<ArticleModel>> getArticleList(String author, int page, int size) {
-        if (StringUtils.isBlank(author)) {
+    public Result<PageInfo<ArticleModel>> getArticlesByAuthor(String username, int page, int size, String status) {
+        if (StringUtils.isBlank(username)) {
             return Result.fail(StatusCode.ParameterIsNull);
         }
-        page = page < 0 || page > WebConst.MAX_PAGE ? 1 : page;
-
-        size = size < 0 || size > WebConst.MAX_PAGESIZE ? WebConst.DEFAULT_PAGESIZE : size;
-
-        PageHelper.startPage(page, size);
-
-        List<Article> articles = articleMapper.selectArticleByAuthor(author);
-
-        PageInfo<ArticleModel> pageInfo = getArticleModelPageInfo(author, articles);
-
-        return Result.ok(pageInfo);
-
+        return getAllArticlesAndAuthorIfNotNull(username, status, page, size);
     }
 
-    /**
-     * 转换文章集合
-     * 将文章集合转换成页面集合
-     * 统计总文章访问量 = （数据库+缓存） 文章访问量
-     *
-     * @param articleList 文章集合
-     */
-    private List<ArticleModel> conversionArticles(List<Article> articleList, String username) {
-        List<ArticleModel> articleModels = new ArrayList<>();
-        articleList.forEach(article -> {
-            // 加上cache里的访问量
-            int incrementHits = webCacheService.getHitsFromCache(article.getId());
-            article.setHits(article.getHits() + incrementHits);
-            ArticleModel articleModel = new ArticleModel(article);
-            String imgUrl = MD5.Base64Encode(article.getAuthor());
-            articleModel.setAuthorImgUrl(webConfig.root + webConfig.userImgUrlPrefix+"/" + imgUrl);
-            articleModel.setFrontCoverImgUrl(webConfig.root + article.getFrontCoverImgUrl());
-            Integer likes = likesMapper.selectLikesByAid(article.getId());
-            articleModel.setLikes(likes);
-            Boolean liked = userLikesArticleMapper.selectLikedAboutArticle(article.getId(), username) != null;
-
-            articleModel.setLiked(liked);
-            articleModels.add(articleModel);
-        });
-        return articleModels;
-    }
-
-    /**
-     * 转换文章
-     * 将文章集合转换成页面
-     * 统计总文章访问量 = （数据库+缓存） 文章访问量
-     * 文章内容格式md to html
-     *
-     * @param article 文章
-     */
-    private ArticleModel conversionArticle(Article article, String contentType, String username) {
-
-        // 获取缓存里的访问量
-        int hits = webCacheService.getHitsFromCache(article.getId());
-
-        // 加上cache里的访问量
-        article.setHits(article.getHits() + hits);
-
-        if (ArticleModel.HTML.equals(contentType)) {
-            String contentHtml = webCacheService.getArticleContentHtml(article.getId());
-            if (StringUtils.isBlank(contentHtml)) {
-                contentHtml = mdParser.md2html(article.getContent());
-                // 放入缓存
-                webCacheService.putArticleContentHtml(article.getId(), contentHtml);
-            }
-            article.setContent(contentHtml);
-
-        }
-
-        String imgUrl = MD5.Base64Encode(article.getAuthor());
-        ArticleModel articleModel = new ArticleModel(article);
-        articleModel.setAuthorImgUrl(webConfig.root + webConfig.userImgUrlPrefix+"/" + imgUrl);
-        Integer likes = likesMapper.selectLikesByAid(article.getId());
-        articleModel.setLikes(likes);
-        Boolean liked = userLikesArticleMapper.selectLikedAboutArticle(article.getId(), username) != null;
-        articleModel.setLiked(liked);
-        return articleModel;
-    }
-
-    /**
-     * 根据文章id|alias获取已发布文章
-     *
-     * @param artName
-     * @return result data type: Acticle
-     */
-    @Override
-    public Result<ArticleModel> getArticleByArtName(String artName, String contentType, String username) {
-
-        if (StringUtils.isBlank(artName)) {
-            // error: 参数为空
-            return Result.fail(StatusCode.ParameterIsNull);
-        }
-
-        Article article = articleMapper.selectByArtName(artName, StringUtils.isNumeric(artName));
-        if (article == null) {
-            // error: 未找到
+    private Result<PageInfo<ArticleModel>> getAllArticlesAndAuthorIfNotNull(String author, String status, int page, int size) {
+        pagination(page, size);
+        List<Article> articleList = articleMapper.selectAllArticlesAndAuthorIfNotNull(author, status);
+        if (null == articleList || articleList.isEmpty()) {
             return Result.fail(StatusCode.DataNotFound);
         }
-
-        ArticleModel articleModel = conversionArticle(article, contentType, username);
-
-        return Result.ok(articleModel);
+        PageInfo<ArticleModel> pageInfo = getArticleModelPageInfo(articleList);
+        return Result.ok(pageInfo);
     }
+
 
     /**
      * 获得文章预览信息
      *
      * @param artName 文章id
-     * @param author  作者
-     * @return 统一返回对象
+     * @param contentType 文章内容格式
+     * @return 统一返回对象 统一返回对象
      */
     @Override
-    public Result<ArticleModel> getPreviewArticleByArtNameAndAuthor(String artName, String author, String contentType) {
+    public Result<ArticleModel> getPreviewArticle(String artName, String contentType) {
+        String author = getUsername();
         if (StringUtils.isBlank(artName) || StringUtils.isBlank(author)) {
             return Result.fail(StatusCode.ParameterIsNull);
         }
@@ -311,15 +347,16 @@ public class ArticleServiceImpl implements IArticleService {
         }
 
 
-        ArticleModel articleModel = conversionArticle(article, contentType, author);
+        ArticleModel articleModel = conversionArticle(article, contentType);
 
         return Result.ok(articleModel);
     }
 
+
     /**
      * 创建文章或修改文章
      *
-     * @param article
+     * @param article 文章对象
      * @return Return ok on success, or fail
      */
     @Transactional(rollbackFor = {ExecutionDatabaseExcepeion.class, StatusCodeException.class})
@@ -407,11 +444,10 @@ public class ArticleServiceImpl implements IArticleService {
      *
      * @param id     文章id
      * @param status 文章状态
-     * @param author 作者
      * @return 统一返回对象
      */
     @Override
-    public Result updateStatus(Integer id, String status, String author) {
+    public Result updateStatus(Integer id, String status) {
         if (id == null) {
             return Result.fail(StatusCode.ParameterIsNull);
         }
@@ -422,6 +458,8 @@ public class ArticleServiceImpl implements IArticleService {
         Article article = new Article();
         article.setId(id);
         article.setStatus(status);
+
+        String author = getUsername();
 
         Example example = new Example(Article.class);
         Example.Criteria criteria = example.createCriteria();
@@ -440,6 +478,7 @@ public class ArticleServiceImpl implements IArticleService {
      *
      * @param id
      * @param increment 访问量增量
+     * @return 统一返回对象
      */
     @Override
     public Result updateHits(Integer id, int increment) {
@@ -461,18 +500,18 @@ public class ArticleServiceImpl implements IArticleService {
     /**
      * 点赞
      *
-     * @param articleId
-     * @param username
-     * @return
+     * @param articleId 文章id
+     * @return 统一返回对象
      */
     @Transactional(rollbackFor = {ExecutionDatabaseExcepeion.class})
     @Override
-    public Result likes(String articleId, String username) {
+    public Result likes(String articleId) {
         if (!StringUtils.isNumeric(articleId)) {
             return Result.fail(StatusCode.ParameterIsInvalid, "文章id必须为纯数字");
         }
+        String username = getUsername();
         Integer aid = Integer.valueOf(articleId);
-        Boolean liked = userLikesArticleMapper.selectLikedAboutArticle(aid, username) != null;
+        boolean liked = userLikesArticleMapper.selectLikedAboutArticle(aid, username) != null;
         int i, j;
         if (liked) {
             // 取消赞
@@ -498,15 +537,16 @@ public class ArticleServiceImpl implements IArticleService {
     /**
      * 删除文章 byId
      *
-     * @param id
-     * @param author 作者
+     * @param id 文章id
+     * @return 统一返回对象
      */
     @Transactional(rollbackFor = ExecutionDatabaseExcepeion.class)
     @Override
-    public Result delArticleById(Integer id, String author) {
+    public Result delArticleById(Integer id) {
         if (id == null) {
             return Result.fail(StatusCode.ParameterIsNull);
         }
+        String author = getUsername();
 
         Article article = new Article();
         article.setId(id);
@@ -523,4 +563,149 @@ public class ArticleServiceImpl implements IArticleService {
         }
         return Result.ok();
     }
+
+    /**
+     * 分页
+     *
+     * @param articleList 文章集合
+     * @return 分页对象
+     */
+    private PageInfo<ArticleModel> getArticleModelPageInfo(List<Article> articleList) {
+        PageInfo<Article> articlePageInfo = new PageInfo<>(articleList);
+
+        // 转换文章访问量
+        List<ArticleModel> articleModels = conversionArticles(articleList);
+
+        PageInfo<ArticleModel> pageInfo = copyPage(articlePageInfo);
+        pageInfo.setList(articleModels);
+        return pageInfo;
+    }
+
+    /**
+     * 转换文章集合
+     * 将文章集合转换成页面集合
+     * 统计总文章访问量 = （数据库+缓存） 文章访问量
+     * 点赞状态
+     *
+     * @param articleList 文章集合
+     * @return 文章model集合
+     */
+    private List<ArticleModel> conversionArticles(List<Article> articleList) {
+        List<ArticleModel> articleModels = new ArrayList<>();
+        articleList.forEach(article -> {
+            // 加上cache里的访问量
+            loadHits(article);
+            ArticleModel articleModel = new ArticleModel(article);
+            loadAuthorImgUrl(article, articleModel);
+            articleModel.setFrontCoverImgUrl(webConfig.root + article.getFrontCoverImgUrl());
+            loadLiked(article, articleModel);
+            articleModels.add(articleModel);
+        });
+        return articleModels;
+    }
+
+    /**
+     * 转换文章
+     * 将文章集合转换成页面
+     * 统计总文章访问量 = （数据库+缓存） 文章访问量
+     * 文章内容格式md to html
+     *
+     * @param article 文章
+     * @param contentType 文章内容格式
+     * @return 文章model
+     */
+    private ArticleModel conversionArticle(Article article, String contentType) {
+        if (ArticleModel.HTML.equals(contentType)) {
+            loadHtmlContent(article);
+        }
+        // 获取缓存里的访问量
+        loadHits(article);
+        ArticleModel articleModel = new ArticleModel(article);
+        loadAuthorImgUrl(article, articleModel);
+        loadLiked(article, articleModel);
+        return articleModel;
+    }
+
+    /**
+     * 设置作者头像链接
+     *
+     * @param article      文章
+     * @param articleModel  文章model
+     */
+    private void loadAuthorImgUrl(Article article, ArticleModel articleModel) {
+        String imgUrl = MD5.Base64Encode(article.getAuthor());
+        articleModel.setAuthorImgUrl(webConfig.root + webConfig.userImgUrlPrefix + "/" + imgUrl);
+    }
+
+    /**
+     * 设置点击数
+     *
+     * @param article 文章
+     */
+    private void loadHits(Article article) {
+        int incrementHits = webCacheService.getHitsFromCache(article.getId());
+        article.setHits(article.getHits() + incrementHits);
+    }
+
+
+    /**
+     * 设置文章内容
+     *
+     * @param article 文章
+     */
+    private void loadHtmlContent(Article article) {
+        String contentHtml = webCacheService.getArticleContentHtml(article.getId());
+        if (StringUtils.isBlank(contentHtml)) {
+            contentHtml = mdParser.md2html(article.getContent());
+            // 放入缓存
+            webCacheService.putArticleContentHtml(article.getId(), contentHtml);
+        }
+        article.setContent(contentHtml);
+    }
+
+    /**
+     * 设置点赞状态
+     *
+     * @param article      文章
+     * @param articleModel 文章model
+     */
+    private void loadLiked(Article article, ArticleModel articleModel) {
+        String username = getUsername();
+        if (StringUtils.isNotBlank(username)) {
+            Integer likes = likesMapper.selectLikesByAid(article.getId());
+            articleModel.setLikes(likes);
+            Boolean liked = userLikesArticleMapper.selectLikedAboutArticle(article.getId(), username) != null;
+            articleModel.setLiked(liked);
+        }
+    }
+
+    /**
+     * 页面copy
+     *
+     * @param articlePageInfo 文章分页对象
+     * @return 文章model分页对象
+     */
+    private PageInfo<ArticleModel> copyPage(PageInfo<Article> articlePageInfo) {
+        PageInfo<ArticleModel> articleModelPageInfo = new PageInfo<>();
+        PojoUtils.copyProperties(articlePageInfo, articleModelPageInfo);
+//        articleModelPageInfo.setEndRow(articlePageInfo.getEndRow());
+//        articleModelPageInfo.setHasNextPage(articlePageInfo.isHasNextPage());
+//        articleModelPageInfo.setHasPreviousPage(articlePageInfo.isHasPreviousPage());
+//        articleModelPageInfo.setIsFirstPage(articlePageInfo.isIsFirstPage());
+//        articleModelPageInfo.setIsLastPage(articlePageInfo.isIsLastPage());
+//        articleModelPageInfo.setNavigateFirstPage(articlePageInfo.getNavigateFirstPage());
+//        articleModelPageInfo.setNavigateLastPage(articlePageInfo.getNavigateLastPage());
+//        articleModelPageInfo.setNavigatepageNums(articlePageInfo.getNavigatepageNums());
+//        articleModelPageInfo.setNavigatePages(articlePageInfo.getNavigatePages());
+//        articleModelPageInfo.setNextPage(articlePageInfo.getNextPage());
+//        articleModelPageInfo.setPageNum(articlePageInfo.getPageNum());
+//        articleModelPageInfo.setPages(articlePageInfo.getPages());
+//        articleModelPageInfo.setPageSize(articlePageInfo.getPageSize());
+//        articleModelPageInfo.setPrePage(articlePageInfo.getPrePage());
+//        articleModelPageInfo.setSize(articlePageInfo.getSize());
+//        articleModelPageInfo.setStartRow(articlePageInfo.getStartRow());
+//        articleModelPageInfo.setTotal(articlePageInfo.getTotal());
+        return articleModelPageInfo;
+    }
+
 }

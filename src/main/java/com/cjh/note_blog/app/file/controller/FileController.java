@@ -8,23 +8,19 @@ import com.cjh.note_blog.app.file.model.FileModel;
 import com.cjh.note_blog.app.file.service.IFileService;
 import com.cjh.note_blog.conf.WebConfig;
 import com.cjh.note_blog.constant.StatusCode;
-import com.cjh.note_blog.controller.BaseController;
+import com.cjh.note_blog.base.controller.BaseController;
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.FileRev;
-import com.cjh.note_blog.pojo.DO.User;
 import com.cjh.note_blog.pojo.VO.RestResponse;
-import com.cjh.note_blog.utils.FileReadUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.apache.catalina.connector.ClientAbortException;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -81,7 +77,7 @@ public class FileController extends BaseController {
                                 @RequestParam(value = "protective", defaultValue = FileRev.PUBLIC) String protective,
                                 HttpServletRequest request) {
 
-        String email = getEmail(request);
+        String email = getEmail();
 
         Result result = fileService.saves(files, email, protective, folderPath);
 
@@ -111,7 +107,7 @@ public class FileController extends BaseController {
                                @RequestParam(value = "protective", defaultValue = FileRev.PUBLIC) String protective,
                                HttpServletRequest request) {
 
-        String email = getEmail(request);
+        String email = getEmail();
 
         Result result = fileService.save(file, email, protective, folderPath);
 
@@ -134,8 +130,8 @@ public class FileController extends BaseController {
     @PostMapping("/upuserimg")
     public RestResponse upUserImg(@RequestParam("file") MultipartFile file,
                                   HttpServletRequest request) {
-        String email = getEmail(request);
-        String username = getUsername(request);
+        String email = getEmail();
+        String username = getUsername();
         Result<FileModel> result = fileService.saveUserImg(file, email, username);
         if (!result.isSuccess()) {
             return RestResponse.fail(result);
@@ -163,7 +159,7 @@ public class FileController extends BaseController {
                                  HttpServletRequest request,
                                  HttpServletResponse response) {
 
-        String email = getEmail(request);
+        String email = getEmail();
 
         Result<FileRev> result = fileService.selectFile(email, fileId);
         if (result.isSuccess()) {
@@ -244,7 +240,7 @@ public class FileController extends BaseController {
     public RestResponse folderPreview(@RequestParam("folderPath") String folderPath,
                                       HttpServletRequest request) {
 
-        String email = getEmail(request);
+        String email = getEmail();
         Result<List<FileDir>> result = fileService.getFileList(folderPath, email);
 
         if (!result.isSuccess()) {

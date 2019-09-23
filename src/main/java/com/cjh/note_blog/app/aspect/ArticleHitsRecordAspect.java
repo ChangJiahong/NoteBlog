@@ -37,13 +37,16 @@ public class ArticleHitsRecordAspect {
     @Autowired
     private IArticleService articleService;
 
+    @Autowired
+    private HttpServletRequest request;
+
     @Pointcut("execution(* com.cjh.note_blog.app.article.controller.ArticleController" +
-            ".getArticle(java.lang.String,javax.servlet.http.HttpServletRequest,java.lang.String)) && args(artName,request, contentType)")
-    public void performance(String artName, HttpServletRequest request, String contentType) {
+            ".getArticle(java.lang.String,java.lang.String)) && args(artName,contentType)")
+    public void performance(String artName, String contentType) {
     }
 
-    @AfterReturning(value = "performance(artName,request,contentType)", returning = "restResponse")
-    public void afterGetArticle(String artName, HttpServletRequest request, String contentType, RestResponse<ArticleModel> restResponse) {
+    @AfterReturning(value = "performance(artName,contentType)", returning = "restResponse")
+    public void afterGetArticle(String artName, String contentType, RestResponse<ArticleModel> restResponse) {
 
         if (!restResponse.isOK()) {
             return;

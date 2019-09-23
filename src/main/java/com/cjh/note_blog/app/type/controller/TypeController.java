@@ -2,7 +2,7 @@ package com.cjh.note_blog.app.type.controller;
 
 import com.cjh.note_blog.app.type.service.ITypeService;
 import com.cjh.note_blog.annotations.PassToken;
-import com.cjh.note_blog.controller.BaseController;
+import com.cjh.note_blog.base.controller.BaseController;
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.Type;
 import com.cjh.note_blog.pojo.VO.RestResponse;

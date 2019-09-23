@@ -18,5 +18,6 @@ public interface UserLikesArticleMapper extends MyMapper<UserLikesArticle> {
      * @param username
      * @return
      */
-    UserLikesArticle selectLikedAboutArticle(@Param(value = "articleId") Integer articleId, @Param(value = "username") String username);
+    UserLikesArticle selectLikedAboutArticle(@Param(value = "articleId") Integer articleId,
+                                             @Param(value = "username") String username);
 }
