@@ -688,11 +688,11 @@ public class ArticleServiceImpl extends BaseService implements IArticleService {
     private PageInfo<ArticleModel> copyPage(PageInfo<Article> articlePageInfo) {
         PageInfo<ArticleModel> articleModelPageInfo = new PageInfo<>();
         PojoUtils.copyProperties(articlePageInfo, articleModelPageInfo);
+        articleModelPageInfo.setHasNextPage(articlePageInfo.isHasNextPage());
+        articleModelPageInfo.setHasPreviousPage(articlePageInfo.isHasPreviousPage());
+        articleModelPageInfo.setIsFirstPage(articlePageInfo.isIsFirstPage());
+        articleModelPageInfo.setIsLastPage(articlePageInfo.isIsLastPage());
 //        articleModelPageInfo.setEndRow(articlePageInfo.getEndRow());
-//        articleModelPageInfo.setHasNextPage(articlePageInfo.isHasNextPage());
-//        articleModelPageInfo.setHasPreviousPage(articlePageInfo.isHasPreviousPage());
-//        articleModelPageInfo.setIsFirstPage(articlePageInfo.isIsFirstPage());
-//        articleModelPageInfo.setIsLastPage(articlePageInfo.isIsLastPage());
 //        articleModelPageInfo.setNavigateFirstPage(articlePageInfo.getNavigateFirstPage());
 //        articleModelPageInfo.setNavigateLastPage(articlePageInfo.getNavigateLastPage());
 //        articleModelPageInfo.setNavigatepageNums(articlePageInfo.getNavigatepageNums());

@@ -7,7 +7,6 @@ import com.cjh.note_blog.pojo.DO.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * :
