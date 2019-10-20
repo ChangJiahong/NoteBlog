@@ -586,6 +586,13 @@ public class ArticleServiceImpl extends BaseService implements IArticleService {
             j = userLikesArticleMapper.delete(userLikesArticle);
 
         } else {
+            Likes likes = likesMapper.selectByPrimaryKey(aid);
+            if (likes==null){
+                likes = new Likes();
+                likes.setArticleId(aid);
+                likes.setLikes(0);
+                likesMapper.insert(likes);
+            }
             // 点赞
             i = likesMapper.like(aid);
 
