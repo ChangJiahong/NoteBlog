@@ -369,11 +369,11 @@ public class ArticleServiceImpl extends BaseService implements IArticleService {
         }
         String frontCoverImgUrl = article.getFrontCoverImgUrl();
         if (StringUtils.isNotBlank(frontCoverImgUrl)) {
-            if (!frontCoverImgUrl.startsWith(webConfig.root)) {
+            if (!frontCoverImgUrl.startsWith(webConfig.resAddress)) {
 
                 return Result.fail(StatusCode.UnsafeLink, "封面图片来自不安全的链接");
             }
-            frontCoverImgUrl = frontCoverImgUrl.substring(webConfig.root.length());
+            frontCoverImgUrl = frontCoverImgUrl.substring(webConfig.resAddress.length());
         } else {
             // 自动生成默认封面
             int n = new Random().nextInt(19) + 1;
@@ -597,7 +597,7 @@ public class ArticleServiceImpl extends BaseService implements IArticleService {
             loadHits(article);
             ArticleModel articleModel = new ArticleModel(article);
             loadAuthorImgUrl(article, articleModel);
-            articleModel.setFrontCoverImgUrl(webConfig.root + article.getFrontCoverImgUrl());
+            articleModel.setFrontCoverImgUrl(webConfig.resAddress + article.getFrontCoverImgUrl());
             loadLiked(article, articleModel);
             articleModels.add(articleModel);
         });
@@ -634,7 +634,7 @@ public class ArticleServiceImpl extends BaseService implements IArticleService {
      */
     private void loadAuthorImgUrl(Article article, ArticleModel articleModel) {
         String imgUrl = MD5.Base64Encode(article.getAuthor());
-        articleModel.setAuthorImgUrl(webConfig.root + webConfig.userImgUrlPrefix + "/" + imgUrl);
+        articleModel.setAuthorImgUrl(webConfig.resAddress + webConfig.userImgUrlPrefix + "/" + imgUrl);
     }
 
     /**

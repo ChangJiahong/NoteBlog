@@ -13,7 +13,15 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "noteblog")  // 配置文件中的前缀
 public class WebConfig {
 
-    public String root;
+    /**
+     * 资源服务地址
+     */
+    public String resAddress;
+
+    /**
+     * 前端服务地址
+     */
+    public String uiAddress;
 
     /**
      * 保存的文件根路径
@@ -32,12 +40,12 @@ public class WebConfig {
 
     public String fileStoragePrefix;
 
-    public String getRoot() {
-        return root;
+    public String getResAddress() {
+        return resAddress;
     }
 
-    public void setRoot(String root) {
-        this.root = root;
+    public void setResAddress(String resAddress) {
+        this.resAddress = resAddress;
     }
 
     public String getFileStorageRootPath() {
@@ -70,5 +78,13 @@ public class WebConfig {
 
     public void setFileStoragePrefix(String fileStoragePrefix) {
         this.fileStoragePrefix = fileStoragePrefix;
+    }
+
+    public String getUiAddress() {
+        return uiAddress;
+    }
+
+    public void setUiAddress(String uiAddress) {
+        this.uiAddress = uiAddress;
     }
 }

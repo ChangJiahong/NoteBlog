@@ -73,8 +73,6 @@ public class BaseInterceptor implements HandlerInterceptor {
 
         String contextPath = request.getContextPath();
 
-//        webConfig.root = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath();
-
         String uri = request.getRequestURI() + " - " + request.getMethod();
 
         // 不是映射到方法的可以通过

@@ -99,7 +99,7 @@ public class FileServiceImpl implements IFileService {
                 saveFile.delete();
                 return Result.ok(FileModel.fail(fileName, "保存失败"));
             }
-            FileModel fileModel = FileModel.success(fileName, webConfig.root + "/file/" + fileRev.getFileId());
+            FileModel fileModel = FileModel.success(fileName, webConfig.resAddress + "/file/" + fileRev.getFileId());
             return Result.ok(fileModel);
         } catch (IOException e) {
             e.printStackTrace();
@@ -126,7 +126,7 @@ public class FileServiceImpl implements IFileService {
             File saveFile = new File(saveFilePath);
             InputStream fileInput = file.getInputStream();
             FileUtils.copyInputStreamToFile(fileInput, saveFile);
-            FileModel fileModel = FileModel.success(fileName, webConfig.root + webConfig.userImgUrlPrefix + "/" + fileName);
+            FileModel fileModel = FileModel.success(fileName, webConfig.resAddress + webConfig.userImgUrlPrefix + "/" + fileName);
             return Result.ok(fileModel);
         } catch (IOException e) {
             e.printStackTrace();
@@ -211,26 +211,32 @@ public class FileServiceImpl implements IFileService {
         File[] files = dir.listFiles();
         List<FileDir> fileDirs = new ArrayList<>();
 
-        for (File file : files) {
-            FileDir fileDir = null;
-            if (file.isDirectory()) {
-                fileDir = new FileDir();
-                fileDir.setType("dir");
-                fileDir.setName(file.getName());
-                fileDir.setCurrentPath(file.getAbsolutePath().substring(root.length()));
-                fileDir.setCount(file.listFiles().length);
-            } else {
-                String fileName = file.getName();
-                String fileId = fileName.substring(0, fileName.lastIndexOf("."));
-                // 查询数据库
-                FileRev fileRev = fileRevMapper.selectByPrimaryKey(fileId);
-                if (fileRev != null) {
-                    fileDir = new FileDir(fileRev);
-                    fileDir.setLength(file.length());
+        if (files != null) {
+            for (File file : files) {
+                FileDir fileDir = null;
+                if (file.isDirectory()) {
+                    fileDir = new FileDir();
+                    fileDir.setType("dir");
+                    fileDir.setName(file.getName());
+                    fileDir.setCurrentPath(file.getAbsolutePath().substring(root.length()));
+                    File[] files1 = file.listFiles();
+                    fileDir.setCount(0);
+                    if (files1!=null) {
+                        fileDir.setCount(files1.length);
+                    }
+                } else {
+                    String fileName = file.getName();
+                    String fileId = fileName.substring(0, fileName.lastIndexOf("."));
+                    // 查询数据库
+                    FileRev fileRev = fileRevMapper.selectByPrimaryKey(fileId);
+                    if (fileRev != null) {
+                        fileDir = new FileDir(fileRev);
+                        fileDir.setLength(file.length());
+                    }
                 }
-            }
-            if (fileDir != null) {
-                fileDirs.add(fileDir);
+                if (fileDir != null) {
+                    fileDirs.add(fileDir);
+                }
             }
         }
 
