@@ -42,15 +42,11 @@ public class ArticleModel implements Serializable {
     /**
      * 文章标题
      */
-    @NotBlank(message = "文章标题不为空")
-    @Size(min = 3, max = 50, message = "文章标题长度在3~50字符之间")
     private String title;
 
     /**
      * 文章别名
      */
-    @Size(min = 1, max = 25, message = "文章别名在1~25字符之间")
-    @Pattern(regexp = "^[A-Za-z]+$", message = "文章别名只能包含字母")
     private String alias;
 
     /**
@@ -66,13 +62,11 @@ public class ArticleModel implements Serializable {
     /**
      * 标签 逗号间隔
      */
-    @Valid
     private String tags;
 
     /**
      * 种类 逗号间隔
      */
-    @Valid
     private String categorys;
 
     /**
@@ -103,14 +97,11 @@ public class ArticleModel implements Serializable {
     /**
      * 文章状态
      */
-    @NotBlank(message = "文章状态不为空")
-    @Contains(target = {Article.PUBLISH, Article.DRAFT}, message = "文章status只包含publish, draft")
     private String status;
 
     /**
      * 文章内容
      */
-    @NotBlank(message = "文章内容不能为空")
     private String content;
 
     private String frontCoverImgUrl;

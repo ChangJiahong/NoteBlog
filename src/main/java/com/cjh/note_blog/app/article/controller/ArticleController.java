@@ -14,6 +14,7 @@ import com.cjh.note_blog.pojo.VO.RestResponse;
 import com.cjh.note_blog.app.article.service.IArticleService;
 import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,7 +105,7 @@ public class ArticleController extends BaseController {
      *
      * @param page 页码
      * @param size 页面大小
-     * @param tag 标签名
+     * @param tag  标签名
      * @return 统一返回对象
      */
     @ApiOperation(value = "根据标签获取文章", notes = "根据标签获取文章")
@@ -157,8 +158,8 @@ public class ArticleController extends BaseController {
     /**
      * 根据文章分类获取
      *
-     * @param page 页码
-     * @param size 页面大小
+     * @param page     页码
+     * @param size     页面大小
      * @param category 分类名
      * @return 统一返回对象
      */
@@ -188,7 +189,7 @@ public class ArticleController extends BaseController {
      * 根据文章id|别名 获取文章信息
      *
      * @param contentType 文章内容格式
-     * @param artName 文章id或者别名
+     * @param artName     文章id或者别名
      * @return 统一返回对象
      */
     @ApiOperation(value = "获取单个已发布文章", notes = "获取单个已发布文章详细内容")
@@ -237,10 +238,9 @@ public class ArticleController extends BaseController {
     }
 
     /**
-     *
      * @param username
-     * @param page 页码
-     * @param size 页面大小
+     * @param page     页码
+     * @param size     页面大小
      * @param username 用户名
      * @return 统一返回对象
      */
@@ -284,9 +284,9 @@ public class ArticleController extends BaseController {
     })
     @GetMapping("/u/archives")
     public RestResponse getUArchives(@RequestParam(required = false, defaultValue = "1")
-                                                  Integer page,
-                                          @RequestParam(required = false, defaultValue = "12")
-                                                  Integer size) {
+                                             Integer page,
+                                     @RequestParam(required = false, defaultValue = "12")
+                                             Integer size) {
 
         Result<PageInfo<ArchiveModel>> result = articleService.getPersonalTimeArchives(page, size);
         if (!result.isSuccess()) {
@@ -310,9 +310,9 @@ public class ArticleController extends BaseController {
     @PassToken
     @GetMapping("/u/tag")
     public RestResponse getUTagArchives(@RequestParam(required = false, defaultValue = "1")
-                                                  Integer page,
-                                          @RequestParam(required = false, defaultValue = "12")
-                                                  Integer size) {
+                                                Integer page,
+                                        @RequestParam(required = false, defaultValue = "12")
+                                                Integer size) {
 
         Result<PageInfo<ArchiveModel>> listResult = articleService.getPersonalTagArchives(page, size);
         if (!listResult.isSuccess()) {
@@ -338,10 +338,10 @@ public class ArticleController extends BaseController {
     @PassToken
     @GetMapping("/u/tag/{tag}")
     public RestResponse getUArticlesByTag(@RequestParam(required = false, defaultValue = "1")
-                                                    Integer page,
-                                            @RequestParam(required = false, defaultValue = "12")
-                                                    Integer size,
-                                            @PathVariable(value = "tag") String tag) {
+                                                  Integer page,
+                                          @RequestParam(required = false, defaultValue = "12")
+                                                  Integer size,
+                                          @PathVariable(value = "tag") String tag) {
 
         Result<PageInfo<ArticleModel>> listResult = articleService.getPersonalArticlesByTag(page, size, tag);
         if (!listResult.isSuccess()) {
@@ -365,9 +365,9 @@ public class ArticleController extends BaseController {
     @PassToken
     @GetMapping("/u/category")
     public RestResponse getUCategoryArchives(@RequestParam(required = false, defaultValue = "1")
-                                                       Integer page,
-                                               @RequestParam(required = false, defaultValue = "12")
-                                                       Integer size) {
+                                                     Integer page,
+                                             @RequestParam(required = false, defaultValue = "12")
+                                                     Integer size) {
 
         Result<PageInfo<ArchiveModel>> listResult = articleService.getPersonalCategoryArchives(page, size);
         if (!listResult.isSuccess()) {
@@ -379,8 +379,8 @@ public class ArticleController extends BaseController {
     /**
      * 根据分类获取登录用户文章
      *
-     * @param page 页码
-     * @param size 页面大小
+     * @param page     页码
+     * @param size     页面大小
      * @param category 分类名
      * @return 统一返回对象
      */
@@ -393,10 +393,10 @@ public class ArticleController extends BaseController {
     @PassToken
     @GetMapping("/u/category/{category}")
     public RestResponse getUArticlesByCategory(@RequestParam(required = false, defaultValue = "1")
-                                                         Integer page,
-                                                 @RequestParam(required = false, defaultValue = "12")
-                                                         Integer size,
-                                                 @PathVariable(value = "category") String category) {
+                                                       Integer page,
+                                               @RequestParam(required = false, defaultValue = "12")
+                                                       Integer size,
+                                               @PathVariable(value = "category") String category) {
 
         Result<PageInfo<ArticleModel>> listResult = articleService.getPersonalArticlesByCategory(page, size, category);
         if (!listResult.isSuccess()) {
@@ -438,7 +438,7 @@ public class ArticleController extends BaseController {
      * 查询个人文章 只能浏览当前用户的文章，包括未发布的
      *
      * @param contentType 文章内容格式
-     * @param artName 文章id|别名
+     * @param artName     文章id|别名
      * @return 统一返回对象
      */
     @ApiOperation(value = "预览个人文章", notes = "获取浏览当前用户的文章详细内容，包括未发布的，需登录")
@@ -461,45 +461,70 @@ public class ArticleController extends BaseController {
     /**
      * 【私有方法】【验证】
      * 【个人用户权限】
-     * 发布文章|保存
+     * 发布文章
      *
      * @param articleModel 文章对象
      * @return 统一返回对象
      */
-    @ApiOperation(value = "发布/保存文章", notes = "发布或保存文章，如果有id则保存，没有则新建")
+    @ApiOperation(value = "发布文章", notes = "发布文章")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "token", value = "身份令牌", dataType = "string", paramType = "header"),
             @ApiImplicitParam(name = "articleModel", value = "文章实体", dataType = "articleModel", paramType = "body")
     })
     @PostMapping("/u")
-    public RestResponse publish(@Valid @RequestBody ArticleModel articleModel,
-                                Errors errors) {
+    public RestResponse publish(@Valid @RequestBody ArticleModel articleModel) {
 
         User user = getUser();
-
-
-        if (errors.hasErrors()) {
-            LOGGER.info("文章参数错误！");
-            // error: 文章参数为空
-            return RestResponse.fail(StatusCode.ParameterVerificationError, Objects.requireNonNull(errors.getFieldError()).getDefaultMessage());
-        }
 
         // 设置作者id 作者username
         articleModel.setAuthor(user.getUsername());
 
+        if (StringUtils.isBlank(articleModel.getCategorys())) {
+            return RestResponse.fail(Result.fail(StatusCode.ParameterIsNull, "文章分类不能为空"));
+        }
+        if (articleModel.getCategorys().split(",").length > 3) {
+            return RestResponse.fail(Result.fail(StatusCode.ParameterIsInvalid, "文章分类最多不超过3个"));
+        }
         Article article = new Article(articleModel);
 
         Result result = articleService.publish(article);
 
         if (result.isSuccess()) {
-            LOGGER.info("[" + user.getEmail() + "]：发布文章成功！");
             return RestResponse.ok();
         }
-        LOGGER.info("[" + user.getEmail() + "]：发布文章错误！错误信息：" + result.getMsg());
         return RestResponse.fail(result);
 
     }
 
+    /**
+     * 【私有方法】【验证】
+     * 【个人用户权限】
+     * 修改文章
+     *
+     * @param articleModel 文章对象
+     * @return 统一返回对象
+     */
+    @ApiOperation(value = "修改文章", notes = "修改文章")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "token", value = "身份令牌", dataType = "string", paramType = "header"),
+            @ApiImplicitParam(name = "articleModel", value = "文章实体", dataType = "articleModel", paramType = "body")
+    })
+    @PutMapping("/u")
+    public RestResponse update(@Valid @RequestBody ArticleModel articleModel) {
+
+        if (StringUtils.isNotBlank(articleModel.getCategorys()) && articleModel.getCategorys().split(",").length > 3) {
+            return RestResponse.fail(Result.fail(StatusCode.ParameterIsInvalid, "文章分类最多不超过3个"));
+        }
+        articleModel.setAuthor(getUsername());
+        Article article = new Article(articleModel);
+
+        Result result = articleService.update(article);
+
+        if (result.isSuccess()) {
+            return RestResponse.ok();
+        }
+        return RestResponse.fail(result);
+    }
 
     /**
      * 【私有方法】【验证】

@@ -38,8 +38,12 @@ public class TypeServiceImpl implements ITypeService {
     @Override
     public Result<Type> selectOne(Type type) {
 
-        if (StringUtils.isBlank(type.getName()) || StringUtils.isBlank(type.getType())) {
-            return Result.fail(StatusCode.ParameterIsNull);
+        if (type == null) {
+            return Result.fail(StatusCode.ParameterIsNull, "type类型为空");
+        }
+
+        if (StringUtils.isBlank(type.getName()) || StringUtils.isBlank(type.getType())){
+            return Result.fail(StatusCode.ParameterIsNull, "type名或类型为空");
         }
 
         Example example = new Example(Type.class);

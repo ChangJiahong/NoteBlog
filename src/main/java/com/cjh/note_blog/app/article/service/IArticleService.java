@@ -188,4 +188,11 @@ public interface IArticleService {
      * @return 统一返回对象
      */
     Result likes(String articleId);
+
+    /**
+     * 更新文章
+     * @param article 文章
+     * @return 统一返回对象
+     */
+    Result update(Article article);
 }

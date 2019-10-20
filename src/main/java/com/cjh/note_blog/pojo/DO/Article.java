@@ -1,6 +1,7 @@
 package com.cjh.note_blog.pojo.DO;
 
 import com.cjh.note_blog.app.article.model.ArticleModel;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -93,15 +94,21 @@ public class Article implements Serializable {
         this.info = articleModel.getInfo();
         this.status = articleModel.getStatus();
         this.title = articleModel.getTitle();
-        String[] tags = articleModel.getTags().split(",");
-        String[] categorys = articleModel.getCategorys().split(",");
+
         List<Type> types = new ArrayList<>();
-        for (String tag : tags) {
-            types.add(new Type(tag, Type.TAG));
+        if (StringUtils.isNotBlank(articleModel.getTags())) {
+            String[] tags = articleModel.getTags().split(",");
+            for (String tag : tags) {
+                types.add(new Type(tag, Type.TAG));
+            }
         }
-        for (String category : categorys) {
-            types.add(new Type(category, Type.CATEGORY));
+        if (StringUtils.isNotBlank(articleModel.getCategorys())) {
+            String[] categorys = articleModel.getCategorys().split(",");
+            for (String category : categorys) {
+                types.add(new Type(category, Type.CATEGORY));
+            }
         }
+
         this.types = types;
         this.content = articleModel.getContent();
         this.frontCoverImgUrl = articleModel.getFrontCoverImgUrl();

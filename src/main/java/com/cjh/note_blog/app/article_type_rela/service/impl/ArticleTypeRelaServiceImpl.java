@@ -80,7 +80,7 @@ public class ArticleTypeRelaServiceImpl implements IArticleTypeRelaService {
     @Override
     public Result<List<ArticleType>> create(Integer aid, List<Type> types) {
         if (types.isEmpty() || aid == null){
-            return Result.fail(StatusCode.ParameterIsNull);
+            return Result.ok();
         }
 
         List<ArticleType> articleTypes = new ArrayList<>();

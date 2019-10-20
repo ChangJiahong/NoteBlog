@@ -15,6 +15,7 @@ import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.Article;
 import com.cjh.note_blog.app.article.service.IArticleService;
 import com.cjh.note_blog.app.article.model.ArchiveModel;
+import com.cjh.note_blog.pojo.DO.Likes;
 import com.cjh.note_blog.pojo.DO.Type;
 import com.cjh.note_blog.pojo.DO.UserLikesArticle;
 import com.cjh.note_blog.utils.DateUtils;
@@ -152,8 +153,8 @@ public class ArticleServiceImpl extends BaseService implements IArticleService {
     /**
      * 根据分类获取
      *
-     * @param page 页码
-     * @param size 页面大小
+     * @param page     页码
+     * @param size     页面大小
      * @param category
      * @return 统一返回对象
      */
@@ -165,8 +166,8 @@ public class ArticleServiceImpl extends BaseService implements IArticleService {
     /**
      * 根据分类获取个人
      *
-     * @param page 页码
-     * @param size 页面大小
+     * @param page     页码
+     * @param size     页面大小
      * @param category
      * @return 统一返回对象
      */
@@ -276,8 +277,8 @@ public class ArticleServiceImpl extends BaseService implements IArticleService {
     /**
      * 获取时间归档
      *
-     * @param page 页码
-     * @param size 页面大小
+     * @param page   页码
+     * @param size   页面大小
      * @param author
      * @return 统一返回对象
      */
@@ -327,7 +328,7 @@ public class ArticleServiceImpl extends BaseService implements IArticleService {
     /**
      * 获得文章预览信息
      *
-     * @param artName 文章id
+     * @param artName     文章id
      * @param contentType 文章内容格式
      * @return 统一返回对象 统一返回对象
      */
@@ -363,16 +364,25 @@ public class ArticleServiceImpl extends BaseService implements IArticleService {
     @Override
     public Result publish(Article article) {
 
-        if (article == null) {
-            // error: 参数为空
-            return Result.fail(StatusCode.ParameterIsNull);
+        if (StringUtils.isBlank(article.getTitle())) {
+            return Result.fail(StatusCode.ParameterIsNull, "文章标题不能为空");
         }
+        if (StringUtils.isBlank(article.getContent())) {
+            return Result.fail(StatusCode.ParameterIsNull, "文章内容不能为空");
+        }
+        if (StringUtils.isBlank(article.getStatus())) {
+            return Result.fail(StatusCode.ParameterIsNull, "文章状态不能为空");
+        }
+
+        Result result = checkeArticleParams(article);
+        if (!result.isSuccess()) {
+            return result;
+        }
+
+        fillArticleInfo(article);
+        // 添加文章封面
         String frontCoverImgUrl = article.getFrontCoverImgUrl();
         if (StringUtils.isNotBlank(frontCoverImgUrl)) {
-            if (!frontCoverImgUrl.startsWith(webConfig.resAddress)) {
-
-                return Result.fail(StatusCode.UnsafeLink, "封面图片来自不安全的链接");
-            }
             frontCoverImgUrl = frontCoverImgUrl.substring(webConfig.resAddress.length());
         } else {
             // 自动生成默认封面
@@ -381,7 +391,87 @@ public class ArticleServiceImpl extends BaseService implements IArticleService {
         }
         article.setFrontCoverImgUrl(frontCoverImgUrl);
 
-        if (!StringUtils.isBlank(article.getAlias())) {
+        Date now = DateUtils.getNow();
+        // 最近修改时间更新
+        article.setModified(now);
+        // 创建时间
+        article.setCreated(now);
+        // 新建文章
+        int re = articleMapper.insertUseGeneratedKeys(article);
+
+        if (re <= 0) {
+            // error: 执行数据库错误
+            throw new ExecutionDatabaseExcepeion("发布文章失败");
+        }
+
+        return Result.ok();
+    }
+
+    /**
+     * 更新文章
+     *
+     * @param article 文章
+     * @return 统一返回对象
+     */
+    @Transactional(rollbackFor = {ExecutionDatabaseExcepeion.class, StatusCodeException.class})
+    @Override
+    public Result update(Article article) {
+        if (article.getId() == null) {
+            return Result.fail("文章id不能为空");
+        }
+        Result result = checkeArticleParams(article);
+        if (!result.isSuccess()) {
+            return result;
+        }
+        String frontCoverImgUrl = article.getFrontCoverImgUrl();
+        if (StringUtils.isNotBlank(frontCoverImgUrl)) {
+            frontCoverImgUrl = frontCoverImgUrl.substring(webConfig.resAddress.length());
+            article.setFrontCoverImgUrl(frontCoverImgUrl);
+        }
+        Date now = DateUtils.getNow();
+        // 最近修改时间更新
+        article.setModified(now);
+
+        // 填充文章简介
+        if (StringUtils.isNotBlank(article.getContent())){
+            fillArticleInfo(article);
+        }
+
+        Example example = new Example(Article.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo(Table.Article.id.name(), article.getId());
+        criteria.andEqualTo(Table.Article.author.name(), article.getAuthor());
+        // 文章作者和修改作者相同
+        int re = articleMapper.updateByExampleSelective(article, example);
+        if (re <= 0) {
+            // error: 执行数据库错误
+            throw new ExecutionDatabaseExcepeion("修改文章失败");
+        }
+        return Result.ok();
+    }
+
+    private Result checkeArticleParams(Article article) {
+        if (article == null) {
+            // error: 参数为空
+            return Result.fail(StatusCode.ParameterIsNull);
+        }
+        if (StringUtils.isNotBlank(article.getTitle()) && (article.getTitle().length() > 50 || article.getTitle().length() < 3)) {
+            return Result.fail(StatusCode.ParameterIsInvalid, "文章标题长度在3~50之间");
+        }
+        if (StringUtils.isNotBlank(article.getAlias()) && (article.getAlias().length() > 25 || article.getAlias().length() < 1)) {
+            return Result.fail(StatusCode.ParameterIsInvalid, "文章别名在1~25字符之间");
+        }
+        if (StringUtils.isNumeric(article.getAlias())) {
+            return Result.fail(StatusCode.ParameterIsInvalid, "文章别名不能为纯数字");
+        }
+        if (StringUtils.isNotBlank(article.getStatus()) && !Article.DRAFT.equals(article.getStatus()) && !Article.PUBLISH.equals(article.getStatus())) {
+            return Result.fail(StatusCode.ParameterIsNull, "文章状态只能为（draft，publish）");
+        }
+        if (StringUtils.isNotBlank(article.getFrontCoverImgUrl()) && !article.getFrontCoverImgUrl().startsWith(webConfig.resAddress)) {
+            return Result.fail(StatusCode.UnsafeLink, "封面图片来自不安全的链接");
+        }
+
+        if (StringUtils.isNotBlank(article.getAlias())) {
             // 检查别名是否重复
             Example example = new Example(Article.class);
             Example.Criteria criteria = example.createCriteria();
@@ -394,15 +484,15 @@ public class ArticleServiceImpl extends BaseService implements IArticleService {
                 return Result.fail(StatusCode.DataAlreadyExists, "该别名已存在！");
             }
         }
+        return Result.ok();
+    }
 
-        Date now = DateUtils.getNow();
-
-        // 最近修改时间更新
-        article.setModified(now);
-
-        // 不修改访问量
-        article.setHits(null);
-
+    /**
+     * 填充文章简介
+     *
+     * @param article
+     */
+    private void fillArticleInfo(Article article) {
         // 描述信息
         // REPAIR: 文章摘要
         if (StringUtils.isBlank(article.getInfo())) {
@@ -412,31 +502,6 @@ public class ArticleServiceImpl extends BaseService implements IArticleService {
                 article.setInfo(article.getContent());
             }
         }
-
-        int re = 0;
-
-        if (article.getId() == null) {
-            // 创建时间
-            article.setCreated(now);
-            // 新建文章
-            re = articleMapper.insertUseGeneratedKeys(article);
-        } else {
-            // 不修改创建时间
-            article.setCreated(null);
-            Example example = new Example(Article.class);
-            Example.Criteria criteria = example.createCriteria();
-            criteria.andEqualTo(Table.Article.id.name(), article.getId());
-            criteria.andEqualTo(Table.Article.author.name(), article.getAuthor());
-            // 文章作者和修改作者相同
-            re = articleMapper.updateByExampleSelective(article, example);
-        }
-
-        if (re <= 0) {
-            // error: 执行数据库错误
-            throw new ExecutionDatabaseExcepeion("publish文章失败");
-        }
-
-        return Result.ok();
     }
 
     /**
@@ -610,7 +675,7 @@ public class ArticleServiceImpl extends BaseService implements IArticleService {
      * 统计总文章访问量 = （数据库+缓存） 文章访问量
      * 文章内容格式md to html
      *
-     * @param article 文章
+     * @param article     文章
      * @param contentType 文章内容格式
      * @return 文章model
      */
@@ -630,7 +695,7 @@ public class ArticleServiceImpl extends BaseService implements IArticleService {
      * 设置作者头像链接
      *
      * @param article      文章
-     * @param articleModel  文章model
+     * @param articleModel 文章model
      */
     private void loadAuthorImgUrl(Article article, ArticleModel articleModel) {
         String imgUrl = MD5.Base64Encode(article.getAuthor());

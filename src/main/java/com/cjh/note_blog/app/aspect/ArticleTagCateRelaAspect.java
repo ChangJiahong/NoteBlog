@@ -8,6 +8,7 @@ import com.cjh.note_blog.exc.StatusCodeException;
 import com.cjh.note_blog.pojo.BO.Result;
 import com.cjh.note_blog.pojo.DO.Article;
 import com.cjh.note_blog.pojo.DO.Type;
+import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
@@ -38,14 +39,17 @@ public class ArticleTagCateRelaAspect {
 
     @Pointcut("execution(* com.cjh.note_blog.app.article.service.IArticleService" +
             ".publish(com.cjh.note_blog.pojo.DO.Article)) && args(article)")
-    public void performance(Article article){}
+    public void publish(Article article){}
 
+    @Pointcut("execution(* com.cjh.note_blog.app.article.service.IArticleService" +
+            ".update(com.cjh.note_blog.pojo.DO.Article)) && args(article)")
+    public void update(Article article){}
 
     /**
      * 在文章提交完成后，对文章的分类标签进行关联
      * @param article
      */
-    @AfterReturning(value = "performance(article)", returning = "result")
+    @AfterReturning(value = "publish(article) || update(article)", returning = "result")
     public void afterArticlePublish(Article article, Result result){
 
         if (!result.isSuccess()){
@@ -60,6 +64,9 @@ public class ArticleTagCateRelaAspect {
             // 当前所有
             List<Type> nowTypes = new ArrayList<>();
             for (Type type : types) {
+                if (StringUtils.isBlank(type.getName())){
+                    continue;
+                }
                 Result res = typeService.selectOne(type);
                 if (res.isSuccess()){
                     // 存在
@@ -75,7 +82,7 @@ public class ArticleTagCateRelaAspect {
                         Result re = typeService.create(type);
                         if (!re.isSuccess()) {
                             // 新建标签失败
-                            String msg = re.getData().toString();
+                            String msg = re.getMsg();
                             throw new StatusCodeException(re.getStatusCode(),
                                     msg==null?"新建标签失败":msg);
                         }
